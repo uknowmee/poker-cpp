@@ -9,6 +9,7 @@
 #include <csignal>
 #include <vector>
 #include <algorithm>
+#include <functional>
 #include "ClientConnection.h"
 
 class ConnectionManager {
@@ -30,7 +31,10 @@ public:
 
     static ConnectionManager createConnectionManager(int serverPort, int numOfPlayers);
     ClientConnection* acceptConnection();
-    void startListening(ClientConnection *connection, void (*onMessageReceived)(const std::string&, const std::string&));
+    void startListening(
+            ClientConnection *connection,
+            const std::function<void(const std::string&, const std::string&)>&
+    );
     void closeServerSocket() const;
     void addConnection(ClientConnection* connection);
     void removeConnection(ClientConnection* connection);

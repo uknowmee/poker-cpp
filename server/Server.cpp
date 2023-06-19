@@ -46,7 +46,11 @@ void *Server::handleClient(void* arg) {
     Server* serverInstance = data->serverInstance;
     ClientConnection* clientConnection = data->clientConnection;
 
-    connectionManager.startListening(clientConnection, onMessageReceived);
+    auto onMsgReceive = [serverInstance](const std::string& message, const std::string& senderName) {
+        serverInstance->onMessageReceived(message, senderName);
+    };
+
+    connectionManager.startListening(clientConnection, onMsgReceive);
 
     serverInstance->removePlayer(clientConnection->getName());
 
@@ -54,9 +58,7 @@ void *Server::handleClient(void* arg) {
 }
 
 void Server::onMessageReceived(const std::string &message, const std::string &senderName) {
-
     // todo logic for handling message
-
     std::string fullMessage = "[" + senderName + "]: " + message;
     std::cout << fullMessage << std::endl;
     connectionManager.broadcastMessage(fullMessage, senderName);

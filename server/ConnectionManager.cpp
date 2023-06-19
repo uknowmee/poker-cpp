@@ -71,7 +71,10 @@ ClientConnection *ConnectionManager::acceptConnection() {
     return connection;
 }
 
-void ConnectionManager::startListening(ClientConnection *connection, void (*onMessageReceived)(const std::string&, const std::string&)) {
+void ConnectionManager::startListening(
+        ClientConnection *connection,
+        const std::function<void(const std::string &, const std::string &)>& onMessageReceived
+) {
     int socket = connection->getSocket();
     std::string clientName = connection->getName();
 

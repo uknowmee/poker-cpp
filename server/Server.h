@@ -30,10 +30,7 @@ private:
 public:
     static Server createServer(int serverPort, int numOfPlayers);
     void start();
-    static void onMessageReceived(
-                                  const std::string &message,
-                                  const std::string &senderName
-    );
+    void onMessageReceived(const std::string &message, const std::string &senderName);
 };
 
 
