@@ -19,23 +19,22 @@ private:
 
     const char *hostname;
     int port;
-
     int client_socket;
     sockaddr_in server{};
 
     Client(const char *hostname, int port);
-
     void createSocket();
     void createServer();
     void connectToServer();
     void startThreads();
+    static void *receive_message(void *arg);
+    static void *send_message(void *arg);
+
 public:
 
     static Client createClient(const char *hostname, int port);
+    void start();
 
-    void execute();
-    static void *receive_messages(void *arg);
-    static void *send_message(void *arg);
 };
 
 

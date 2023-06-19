@@ -14,7 +14,7 @@ Client::Client(const char *hostname, int port)
     this->server = {};
 }
 
-void Client::execute() {
+void Client::start() {
     createSocket();
     createServer();
     connectToServer();
@@ -50,14 +50,14 @@ void Client::connectToServer() {
 
 void Client::startThreads() {
     pthread_t receiveThread, sendThread;
-    pthread_create(&receiveThread, nullptr, receive_messages, &client_socket);
+    pthread_create(&receiveThread, nullptr, receive_message, &client_socket);
     pthread_create(&sendThread, nullptr, send_message, &client_socket);
 
     pthread_join(receiveThread, nullptr);
     pthread_join(sendThread, nullptr);
 }
 
-void *Client::receive_messages(void *arg) {
+void *Client::receive_message(void *arg) {
     int client_socket = *(static_cast<int *>(arg));
     char buffer[1024];
 

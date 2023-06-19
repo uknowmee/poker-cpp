@@ -5,7 +5,7 @@ int main() {
     int port = 8987;
 
     Client client = Client::createClient(hostname, port);
-    client.execute();
+    client.start();
 
     return 0;
 }
