@@ -46,14 +46,14 @@ void *Server::handleClient(void* arg) {
     Server* serverInstance = data->serverInstance;
     ClientConnection* clientConnection = data->clientConnection;
 
-    connectionManager.startListening(clientConnection, serverInstance, onMessageReceived);
+    connectionManager.startListening(clientConnection, onMessageReceived);
 
     serverInstance->removePlayer(clientConnection->getName());
 
     return nullptr;
 }
 
-void Server::onMessageReceived(const Server &serverInstance, const std::string &message, const std::string &senderName) {
+void Server::onMessageReceived(const std::string &message, const std::string &senderName) {
 
     // todo logic for handling message
 
