@@ -17,7 +17,7 @@ ConnectionManager ConnectionManager::createConnectionManager(int serverPort, int
 ConnectionManager::ConnectionManager() = default;
 
 ConnectionManager::ConnectionManager(int serverPort, int numOfPlayers)
-        : serverPort(serverPort), numOfPlayers(numOfPlayers) {
+        : serverPort(serverPort), maxNumOfPlayers(numOfPlayers) {
     connections = std::vector<ClientConnection *>();
     mutex = PTHREAD_MUTEX_INITIALIZER;
 }
@@ -46,7 +46,7 @@ void ConnectionManager::prepareServerSocket() {
     std::cout << "Server started. Listening for connections..." << std::endl;
 }
 
-ClientConnection *ConnectionManager::acceptConnection() {
+ClientConnection *ConnectionManager::acceptConnection(bool isGameStarted) {
     sockaddr_in clientAddress{};
 
     socklen_t clientAddressLength = sizeof(clientAddress);
@@ -57,13 +57,17 @@ ClientConnection *ConnectionManager::acceptConnection() {
         throw std::runtime_error("Error accepting client connection.");
     }
 
-    if (connections.size() == numOfPlayers) {
+    if (isGameStarted) {
+        throw std::runtime_error("Game already started. Closing connection.");
+    }
+
+    if (connections.size() == maxNumOfPlayers) {
         std::cout << "Maximum number of players reached. Closing connection." << std::endl;
         close(clientSocket);
         throw std::runtime_error("Maximum number of players reached. Closing connection.");
     }
 
-    std::string clientName = "Player " + std::to_string(connections.size() + 1);
+    std::string clientName = findNewClientName();
 
     auto *connection = new ClientConnection(clientSocket, clientAddress, clientName);
     addConnection(connection);
@@ -145,4 +149,41 @@ void ConnectionManager::sendToClient(const std::string &message, const std::stri
         }
     }
     pthread_mutex_unlock(&mutex);
+}
+
+std::string ConnectionManager::findNewClientName() {
+    std::string clientName = "Player";
+    int i = 1;
+
+    while (true) {
+        bool nameExists = false;
+
+        for (auto &connection: connections) {
+            if (connection->getName() == clientName + std::to_string(i)) {
+                nameExists = true;
+                break;
+            }
+        }
+
+        if (!nameExists) {
+            break;
+        }
+
+        i++;
+    }
+
+    return clientName + std::to_string(i);
+}
+
+int ConnectionManager::getNumOfPlayers() const {
+    return (int)connections.size();
+}
+
+void ConnectionManager::broadcastMessage(const std::string& message) {
+    pthread_mutex_lock(&mutex);
+    for (auto &connection: connections) {
+        send(connection->getSocket(), message.c_str(), message.size(), 0);
+    }
+    pthread_mutex_unlock(&mutex);
+
 }

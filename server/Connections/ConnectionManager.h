@@ -17,7 +17,7 @@ class ConnectionManager {
 private:
     std::vector<ClientConnection*> connections;
     pthread_mutex_t mutex{};
-    int numOfPlayers{};
+    int maxNumOfPlayers{};
 
     int serverSocket{};
     int serverPort{};
@@ -25,12 +25,13 @@ private:
 
     ConnectionManager(int serverPort, int numOfPlayers);
     void prepareServerSocket();
+    std::string findNewClientName();
 
 public:
     ConnectionManager();
 
     static ConnectionManager createConnectionManager(int serverPort, int numOfPlayers);
-    ClientConnection* acceptConnection();
+    ClientConnection *acceptConnection(bool isGameSta);
     void startListening(
             ClientConnection *connection,
             const std::function<void(const std::string&, const std::string&)>&
@@ -41,6 +42,9 @@ public:
     void broadcastMessage(const std::string& message, const std::string& senderName);
     void sendToClient(const std::string& message, const std::string& senderName, const std::string& receiverName);
     void sendToClient(const std::string& message, const std::string& receiverName);
+    int getNumOfPlayers() const;
+
+    void broadcastMessage(const std::string& message);
 };
 
 
