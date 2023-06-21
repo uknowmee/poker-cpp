@@ -12,12 +12,14 @@
 #include <unistd.h>
 #include "../Connections/ConnectionManager.h"
 #include "../Connections/ClientConnection.h"
-#include "MessageHandler.h"
-#include "../Game/Game.h"
+#include "MessageIdentifier.h"
+#include "MessagePrinter.h"
 #include "ServerMessageSender.h"
+#include "../Game/GameService.h"
+#include "ServerGameController.h"
 #include "ServerCommandInvoker.h"
 
-class Server : public ServerMessageSender, ServerCommandInvoker {
+class Server : public ServerGameController, ServerCommandInvoker {
 
 private:
     int maxNumOfPlayers;
@@ -26,19 +28,24 @@ private:
         ClientConnection *clientConnection;
     };
     static ConnectionManager connectionManager;
-    MessageHandler messageHandler;
-    Game game;
+    MessageIdentifier messageIdentifier;
+    GameService gameService;
 
+    // Server
     Server(int serverPort, int maxNumOfPlayers);
+    void startConsoleThread();
     void acceptClientConnections();
+    static void *handleConsole(void *arg);
+    static void *handleClient(void *arg);
     void addPlayer(const std::string &playerName);
     void removePlayer(const std::string &playerName);
-    static void *handleClient(void *arg);
     void onMessageReceived(const std::string &message, const std::string &senderName);
     void checkStartGame();
-    void invokeByeCommand(const std::string &senderName);
-    void invokeHelpCommand(const std::string &senderName);
 
+    // ServerGameController
+    void disconnectClient(const std::string &clientName) override;
+
+    // ServerMessageSender
     void broadcastMessageExceptSender(
             const std::string &message,
             const std::string &senderName
@@ -51,13 +58,17 @@ private:
     ) override;
     void sendToClient(const std::string &message, const std::string &receiverName) override;
 
+    // ServerCommandInvoker
     void invokeCommand(const std::string &command, const std::string &senderName) override;
     void invokeCommand(const std::string &command, int value, const std::string &senderName) override;
     void invokeInvalidCommand(const std::string &messageInfo, const std::string &senderName) override;
+    void invokeByeCommand(const std::string &senderName) override;
+    void invokeHelpCommand(const std::string &senderName) override;
 
 public:
     static Server createServer(int serverPort, int maxNumOfPlayers);
     void start();
+    void stop();
 };
 
 

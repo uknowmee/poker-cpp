@@ -44,6 +44,8 @@ public:
     void sendToClientFromSender(const std::string& message, const std::string& senderName, const std::string& receiverName);
     void sendToClient(const std::string& message, const std::string& receiverName);
     int getNumOfPlayers() const;
+
+    void disconnectAllClients();
 };
 
 

@@ -10,20 +10,51 @@ Server Server::createServer(int serverPort, int maxNumOfPlayers) {
     return {serverPort, maxNumOfPlayers};
 }
 
-Server::Server(int serverPort, int maxNumOfPlayers) {
-    this->maxNumOfPlayers = maxNumOfPlayers;
+Server::Server(int serverPort, int maxNumOfPlayers)
+        : gameService(GameService::createGameService(this)),
+          maxNumOfPlayers(maxNumOfPlayers) {
     connectionManager = ConnectionManager::createConnectionManager(serverPort, maxNumOfPlayers);
-    messageHandler = MessageHandler::createMessageHandler(this);
-    game = Game::createGame();
+    messageIdentifier = MessageIdentifier::createMessageIdentifier(
+            dynamic_cast<ServerCommandInvoker *>(this)
+    );
 }
 
 void Server::start() {
     try {
+        startConsoleThread();
         acceptClientConnections();
     } catch (const std::exception &e) {
         std::cout << e.what() << std::endl;
-        connectionManager.closeServerSocket();
-        return;
+        stop();
+    }
+}
+
+void Server::stop() {
+    broadcastMessage(MessagePrinter::serverStopMessage());
+    connectionManager.disconnectAllClients();
+    connectionManager.closeServerSocket();
+    exit(0);
+}
+
+void Server::startConsoleThread() {
+    std::cout << MessagePrinter::serverStopCommandMessage() << std::endl;
+
+    pthread_t consoleThread;
+    pthread_create(&consoleThread, nullptr, handleConsole, this);
+    pthread_detach(consoleThread);
+}
+
+void *Server::handleConsole(void *arg) {
+    Server server = *static_cast<Server *>(arg);
+
+    while (true) {
+        std::string command;
+        std::cin >> command;
+
+        if (command == "/stop") {
+            server.stop();
+            return nullptr;
+        }
     }
 }
 
@@ -31,7 +62,7 @@ void Server::acceptClientConnections() {
     while (true) {
         pthread_t clientThread;
         try {
-            ClientConnection *connection = connectionManager.acceptConnection(game.isStarted());
+            ClientConnection *connection = connectionManager.acceptConnection(gameService.isGameStarted());
 
             addPlayer(connection->getName());
 
@@ -67,23 +98,24 @@ void *Server::handleClient(void *arg) {
 }
 
 void Server::onMessageReceived(const std::string &message, const std::string &senderName) {
-    messageHandler.handleMessage(message, senderName);
+    messageIdentifier.identifyMessage(message, senderName);
 }
 
 void Server::addPlayer(const std::string &playerName) {
-    game.addPlayer(playerName);
+    gameService.addPlayer(playerName);
 
     std::string message = MessagePrinter::printAddPlayerMessage(playerName);
     broadcastMessageExceptSender(message, playerName);
 
     sendToClient(MessagePrinter::welcomeMessage(playerName), playerName);
+    usleep(50000);
     broadcastMessage(MessagePrinter::numberOfConnectedPlayersInfoMessage(connectionManager.getNumOfPlayers()));
 
     checkStartGame();
 }
 
 void Server::removePlayer(const std::string &playerName) {
-    game.removePlayer(playerName);
+    gameService.removePlayer(playerName);
 
     std::string message = MessagePrinter::printRemovePlayerMessage(playerName);
     broadcastMessageExceptSender(message, playerName);
@@ -95,8 +127,8 @@ void Server::checkStartGame() {
         return;
     }
 
-    if (!game.isStarted()) {
-        game.start();
+    if (!gameService.isGameStarted()) {
+        gameService.startGame();
         MessagePrinter::printStartGameMessage();
         broadcastMessage(MessagePrinter::gameStartMessage());
     }
@@ -133,4 +165,16 @@ void Server::invokeCommand(const std::string &command, int value, const std::str
 
 void Server::invokeInvalidCommand(const std::string &messageInfo, const std::string &senderName) {
     sendToClient(messageInfo, senderName);
+}
+
+void Server::disconnectClient(const std::string &clientName) {
+    // todo implement
+}
+
+void Server::invokeByeCommand(const std::string &senderName) {
+    // todo implement
+}
+
+void Server::invokeHelpCommand(const std::string &senderName) {
+    // todo implement
 }

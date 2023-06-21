@@ -27,7 +27,7 @@ std::string MessagePrinter::printAddPlayerMessage(const std::string &playerName)
     std::string message = playerName + " has joined the game!";
     std::cout << message << std::endl;
 
-    return message;
+    return  message;
 }
 
 std::string MessagePrinter::gameStartMessage() {
@@ -42,4 +42,12 @@ std::string MessagePrinter::numberOfConnectedPlayersInfoMessage(int numOfPlayers
     return numOfPlayers == 1
     ? "There is 1 player in the game"
     : "There are " + std::to_string(numOfPlayers) + " players in the game";
+}
+
+std::string MessagePrinter::serverStopCommandMessage() {
+    return "Type /stop to close server";
+}
+
+std::string MessagePrinter::serverStopMessage() {
+    return "Server is closing...";
 }

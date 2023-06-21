@@ -19,9 +19,11 @@ void Client::start() {
     createServer();
     connectToServer();
 
-    startThreads();
-
-    close(this->client_socket);
+    try {
+        startThreads();
+    } catch (const std::exception &e) {
+        close(this->client_socket);
+    }
 }
 
 void Client::createSocket() {
@@ -65,10 +67,14 @@ void *Client::receive_message(void *arg) {
         ssize_t num_bytes = recv(client_socket, buffer, sizeof(buffer), 0);
         if (num_bytes <= 0) {
             std::cerr << "Error occurred while receiving messages from the server." << std::endl;
-            break;
+            throw std::runtime_error("Error occurred while receiving messages from the server.");
         }
         buffer[num_bytes] = '\0';
-        std::cout << "Server: " << buffer << std::endl;
+        std::cout << buffer << std::endl;
+
+        if (strcmp(buffer, "Server is closing...") == 0) {
+            throw std::runtime_error("Server closed.");
+        }
     }
 
     pthread_exit(nullptr);
@@ -80,6 +86,11 @@ void *Client::send_message(void *arg) {
 
     while (true) {
         std::cin.getline(buffer, sizeof(buffer));
+
+        if (strlen(buffer) == 0) {
+            continue;
+        }
+
         ssize_t num_bytes = send(client_socket, buffer, strlen(buffer), 0);
         if (num_bytes <= 0) {
             std::cerr << "Error occurred while sending the message to the server." << std::endl;

@@ -8,6 +8,10 @@ Game Game::createGame() {
     return {};
 }
 
+Game::Game() {
+    this->started = false;
+}
+
 bool Game::isStarted() const {
     return started;
 }
@@ -16,10 +20,10 @@ void Game::start() {
     started = true;
 }
 
-void Game::addPlayer(const std::basic_string<char> &playerName) {
-    // todo add player to game
+void Game::removePlayer(const std::string &playerName) {
+
 }
 
-void Game::removePlayer(const std::string &playerName) {
-    // todo remove player from game
+void Game::addPlayer(const std::string &playerName) {
+
 }

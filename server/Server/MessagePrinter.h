@@ -23,6 +23,8 @@ public:
     static std::string gameStartMessage();
     static std::string welcomeMessage(const std::string &playerName);
     static std::string numberOfConnectedPlayersInfoMessage(int numOfPlayers);
+    static std::string serverStopCommandMessage();
+    static std::string serverStopMessage();
 };
 
 

@@ -10,6 +10,9 @@
 class ServerCommandInvoker {
 
 public:
+
+    virtual void invokeByeCommand(const std::string &senderName) = 0;
+    virtual void invokeHelpCommand(const std::string &senderName) = 0;
     virtual void invokeCommand(
             const std::string &command,
             const std::string &senderName

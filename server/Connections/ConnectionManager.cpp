@@ -185,5 +185,14 @@ void ConnectionManager::broadcastMessage(const std::string& message) {
         send(connection->getSocket(), message.c_str(), message.size(), 0);
     }
     pthread_mutex_unlock(&mutex);
+}
 
+void ConnectionManager::disconnectAllClients() {
+    pthread_mutex_lock(&mutex);
+    for (auto &connection: connections) {
+        close(connection->getSocket());
+        delete connection;
+    }
+    connections.clear();
+    pthread_mutex_unlock(&mutex);
 }
