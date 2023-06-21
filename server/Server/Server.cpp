@@ -11,17 +11,27 @@ Server Server::createServer(int serverPort, int maxNumOfPlayers) {
 }
 
 Server::Server(int serverPort, int maxNumOfPlayers) {
-
-    // todo logic for creating game
     this->maxNumOfPlayers = maxNumOfPlayers;
     connectionManager = ConnectionManager::createConnectionManager(serverPort, maxNumOfPlayers);
+    messageHandler = MessageHandler::createMessageHandler(this);
+    game = Game::createGame();
 }
 
 void Server::start() {
+    try {
+        acceptClientConnections();
+    } catch (const std::exception &e) {
+        std::cout << e.what() << std::endl;
+        connectionManager.closeServerSocket();
+        return;
+    }
+}
+
+void Server::acceptClientConnections() {
     while (true) {
         pthread_t clientThread;
         try {
-            ClientConnection* connection = connectionManager.acceptConnection(isGameStarted);
+            ClientConnection *connection = connectionManager.acceptConnection(game.isStarted());
 
             addPlayer(connection->getName());
 
@@ -31,22 +41,21 @@ void Server::start() {
 
             pthread_create(&clientThread, nullptr, handleClient, &data);
             pthread_detach(clientThread);
-        } catch (const std::exception& e) {
+        } catch (const std::exception &e) {
             std::cout << e.what() << std::endl;
             continue;
         }
     }
-    connectionManager.closeServerSocket();
 }
 
-void *Server::handleClient(void* arg) {
+void *Server::handleClient(void *arg) {
 
-    auto* data = static_cast<HandleClientData*>(arg);
+    auto *data = static_cast<HandleClientData *>(arg);
 
-    Server* serverInstance = data->serverInstance;
-    ClientConnection* clientConnection = data->clientConnection;
+    Server *serverInstance = data->serverInstance;
+    ClientConnection *clientConnection = data->clientConnection;
 
-    auto onMsgReceive = [serverInstance](const std::string& message, const std::string& senderName) {
+    auto onMsgReceive = [serverInstance](const std::string &message, const std::string &senderName) {
         serverInstance->onMessageReceived(message, senderName);
     };
 
@@ -58,40 +67,70 @@ void *Server::handleClient(void* arg) {
 }
 
 void Server::onMessageReceived(const std::string &message, const std::string &senderName) {
-    // todo logic for handling message
-
-    std::string fullMessage = "[" + senderName + "]: " + message;
-    std::cout << fullMessage << std::endl;
-    connectionManager.broadcastMessage(fullMessage, senderName);
+    messageHandler.handleMessage(message, senderName);
 }
 
 void Server::addPlayer(const std::string &playerName) {
-    // todo logic for adding player to game
+    game.addPlayer(playerName);
 
-    std::string message = playerName + " has joined the game!";
-    std::cout << message << std::endl;
-    connectionManager.broadcastMessage(message, playerName);
-    connectionManager.sendToClient("Welcome to the game! You are " + playerName, playerName);
-    connectionManager.broadcastMessage("There are " + std::to_string(connectionManager.getNumOfPlayers()) + " players in the game");
+    std::string message = MessagePrinter::printAddPlayerMessage(playerName);
+    broadcastMessageExceptSender(message, playerName);
+
+    sendToClient(MessagePrinter::welcomeMessage(playerName), playerName);
+    broadcastMessage(MessagePrinter::numberOfConnectedPlayersInfoMessage(connectionManager.getNumOfPlayers()));
+
     checkStartGame();
 }
 
 void Server::removePlayer(const std::string &playerName) {
-    // todo logic for removing player from game
+    game.removePlayer(playerName);
 
-    std::string message = playerName + " has left the game!";
-    std::cout << message << std::endl;
-    connectionManager.broadcastMessage(message, playerName);
-    connectionManager.broadcastMessage("There are " + std::to_string(connectionManager.getNumOfPlayers()) + " players in the game");
+    std::string message = MessagePrinter::printRemovePlayerMessage(playerName);
+    broadcastMessageExceptSender(message, playerName);
+    broadcastMessage(MessagePrinter::numberOfConnectedPlayersInfoMessage(connectionManager.getNumOfPlayers()));
 }
 
 void Server::checkStartGame() {
-    if (connectionManager.getNumOfPlayers() == maxNumOfPlayers) {
-        if (!isGameStarted) {
-            isGameStarted = true;
-            std::cout << "The game has started!" << std::endl;
-            connectionManager.broadcastMessage("The game has started!");
-        }
+    if (connectionManager.getNumOfPlayers() != maxNumOfPlayers) {
+        return;
+    }
+
+    if (!game.isStarted()) {
+        game.start();
+        MessagePrinter::printStartGameMessage();
+        broadcastMessage(MessagePrinter::gameStartMessage());
     }
 }
 
+void Server::broadcastMessageExceptSender(const std::string &message, const std::string &senderName) {
+    connectionManager.broadcastMessageExceptSender(message, senderName);
+}
+
+void Server::broadcastMessage(const std::string &message) {
+    connectionManager.broadcastMessage(message);
+}
+
+void Server::sendToClientFromSender(
+        const std::string &message,
+        const std::string &senderName,
+        const std::string &receiverName
+) {
+    connectionManager.sendToClientFromSender(message, senderName, receiverName);
+}
+
+void Server::sendToClient(const std::string &message, const std::string &receiverName) {
+    connectionManager.sendToClient(message, receiverName);
+}
+
+void Server::invokeCommand(const std::string &command, const std::string &senderName) {
+    // todo implement
+    broadcastMessageExceptSender("[" + senderName + "]: " + command, senderName);
+}
+
+void Server::invokeCommand(const std::string &command, int value, const std::string &senderName) {
+    // todo implement
+}
+
+void Server::invokeInvalidCommand(const std::string &messageInfo, const std::string &senderName) {
+    sendToClient(messageInfo, senderName);
+}

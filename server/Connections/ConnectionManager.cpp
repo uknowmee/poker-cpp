@@ -117,7 +117,7 @@ void ConnectionManager::removeConnection(ClientConnection *connection) {
     pthread_mutex_unlock(&mutex);
 }
 
-void ConnectionManager::broadcastMessage(const std::string &message, const std::string &senderName) {
+void ConnectionManager::broadcastMessageExceptSender(const std::string &message, const std::string &senderName) {
     pthread_mutex_lock(&mutex);
     for (auto &connection: connections) {
         if (connection->getName() != senderName) {
@@ -127,7 +127,7 @@ void ConnectionManager::broadcastMessage(const std::string &message, const std::
     pthread_mutex_unlock(&mutex);
 }
 
-void ConnectionManager::sendToClient(
+void ConnectionManager::sendToClientFromSender(
         const std::string &message,
         const std::string &senderName,
         const std::string &receiverName
