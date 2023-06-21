@@ -134,6 +134,12 @@ void Server::checkStartGame() {
     }
 }
 
+// ServerGameController
+void Server::disconnectClient(const std::string &clientName) {
+    // todo implement
+}
+
+// ServerMessageSender
 void Server::broadcastMessageExceptSender(const std::string &message, const std::string &senderName) {
     connectionManager.broadcastMessageExceptSender(message, senderName);
 }
@@ -154,6 +160,15 @@ void Server::sendToClient(const std::string &message, const std::string &receive
     connectionManager.sendToClient(message, receiverName);
 }
 
+// ServerCommandInvoker
+void Server::invokeByeCommand(const std::string &senderName) {
+    // todo implement
+}
+
+void Server::invokeHelpCommand(const std::string &senderName) {
+    // todo implement
+}
+
 void Server::invokeCommand(const std::string &command, const std::string &senderName) {
     // todo implement
     broadcastMessageExceptSender("[" + senderName + "]: " + command, senderName);
@@ -165,16 +180,4 @@ void Server::invokeCommand(const std::string &command, int value, const std::str
 
 void Server::invokeInvalidCommand(const std::string &messageInfo, const std::string &senderName) {
     sendToClient(messageInfo, senderName);
-}
-
-void Server::disconnectClient(const std::string &clientName) {
-    // todo implement
-}
-
-void Server::invokeByeCommand(const std::string &senderName) {
-    // todo implement
-}
-
-void Server::invokeHelpCommand(const std::string &senderName) {
-    // todo implement
 }
