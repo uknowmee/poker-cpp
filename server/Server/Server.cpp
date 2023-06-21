@@ -183,15 +183,15 @@ void Server::invokeHelpCommand(const std::string &senderName) {
 }
 
 void Server::invokeCommand(const std::string &command, const std::string &senderName) {
-    // todo implement
+    gameService.invokeCommand(command, senderName);
 }
 
 void Server::invokeCommand(const std::string &command, int value, const std::string &senderName) {
-    // todo implement
+    gameService.invokeCommand(command, value, senderName);
 }
 
 void Server::invokeCommand(const std::string &command, std::vector<int> values, const std::string &senderName) {
-    // todo implement
+    gameService.invokeCommand(command, values, senderName);
 }
 
 void Server::invokeInvalidCommand(const std::string &messageInfo, const std::string &senderName) {

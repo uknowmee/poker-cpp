@@ -96,7 +96,10 @@ std::string MessagePrinter::addIndentation(const std::string& input, const std::
     std::string line;
 
     while (std::getline(ss, line)) {
-        result << indent << line << '\n';
+        result << indent << line;
+        if (!ss.eof()) {
+            result << '\n';
+        }
     }
 
     return result.str();

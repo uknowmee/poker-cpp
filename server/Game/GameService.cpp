@@ -28,3 +28,15 @@ void GameService::addPlayer(const std::string &playerName) {
 void GameService::removeDisconnectedPlayer(const std::string &playerName) {
     game.removePlayer(playerName);
 }
+
+void GameService::invokeCommand(const std::string &command, const std::string &senderName) {
+
+}
+
+void GameService::invokeCommand(const std::string &command, int value, const std::string &senderName) {
+
+}
+
+void GameService::invokeCommand(const std::string &command, const std::vector<int>& values, const std::string &senderName) {
+
+}
