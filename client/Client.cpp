@@ -29,8 +29,7 @@ void Client::start() {
 void Client::createSocket() {
     client_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (client_socket == -1) {
-        std::cerr << "Error creating socket." << std::endl;
-        return;
+        std::throw_with_nested(std::runtime_error("Error creating socket."));
     }
 }
 
@@ -38,15 +37,13 @@ void Client::createServer() {
     server.sin_family = AF_INET;
     server.sin_port = htons(port);
     if (inet_pton(AF_INET, hostname, &(server.sin_addr)) <= 0) {
-        std::cerr << "Invalid address/Address not supported." << std::endl;
-        return;
+        std::throw_with_nested(std::runtime_error("Invalid address/Address not supported."));
     }
 }
 
 void Client::connectToServer() {
     if (connect(client_socket, reinterpret_cast<struct sockaddr *>(&server), sizeof(server)) < 0) {
-        std::cerr << "Error connecting to the server." << std::endl;
-        return;
+        std::throw_with_nested(std::runtime_error("Error connecting to the server."));
     }
 }
 
@@ -66,18 +63,19 @@ void *Client::receive_message(void *arg) {
     while (true) {
         ssize_t num_bytes = recv(client_socket, buffer, sizeof(buffer), 0);
         if (num_bytes <= 0) {
-            std::cerr << "Error occurred while receiving messages from the server." << std::endl;
-            throw std::runtime_error("Error occurred while receiving messages from the server.");
+            exit(1);
         }
         buffer[num_bytes] = '\0';
         std::cout << buffer << std::endl;
 
         if (strcmp(buffer, "Server is closing...") == 0) {
-            throw std::runtime_error("Server closed.");
+            exit(1);
+        }
+
+        if (strcmp(buffer, "You are disconnecting. Cya later!") == 0) {
+            exit(1);
         }
     }
-
-    pthread_exit(nullptr);
 }
 
 void *Client::send_message(void *arg) {
@@ -93,10 +91,7 @@ void *Client::send_message(void *arg) {
 
         ssize_t num_bytes = send(client_socket, buffer, strlen(buffer), 0);
         if (num_bytes <= 0) {
-            std::cerr << "Error occurred while sending the message to the server." << std::endl;
-            break;
+            exit(1);
         }
     }
-
-    pthread_exit(nullptr);
 }

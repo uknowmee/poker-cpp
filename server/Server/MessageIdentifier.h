@@ -5,24 +5,41 @@
 #ifndef MY_PROJECTS_MESSAGEIDENTIFIER_H
 #define MY_PROJECTS_MESSAGEIDENTIFIER_H
 
-
+#include <sstream>
 #include <string>
+#include <vector>
 #include "ServerCommandInvoker.h"
 #include "MessagePrinter.h"
+#include "ParsedMessage.h"
 
 class MessageIdentifier {
 
 private:
     ServerCommandInvoker *serverCommandInvoker;
+
     explicit MessageIdentifier(ServerCommandInvoker *serverCommandInvoker);
+    static ParsedMessage parseMessage(const std::string &message, const std::string &senderName);
+    static ParsedMessage makeBye(const std::string &senderName);
+    static ParsedMessage makeHelp(const std::string &senderName);
+    static ParsedMessage makeFold(const std::string &senderName);
+    static ParsedMessage makeCheck(const std::string &senderName);
+    static ParsedMessage makeCall(const std::string &senderName);
+    static ParsedMessage makeAll(const std::string &senderName);
+    static ParsedMessage makeCya(const std::string &senderName);
+    static ParsedMessage makeInfo(const std::string &senderName);
+    static ParsedMessage tryMakeBet(const std::string &message, std::vector<std::string> messageVector, const std::string &senderName);
+    static ParsedMessage tryMakeRaise(const std::string &message, std::vector<std::string> messageVector, const std::string &senderName);
+    static ParsedMessage tryMakeExchange(const std::string &message, std::vector<std::string> messageVector, const std::string &senderName);
+    static ParsedMessage makeInvalid(const std::string &message, const std::string &senderName);
+
+    void callExactInvoke(const ParsedMessage& parsedMessage);
+    static std::vector<std::string> splitString(const std::string &input);
+    static bool isNumber(const std::string& mayBeValue);
 
 public:
     static MessageIdentifier createMessageIdentifier(ServerCommandInvoker *serverCommandInvoker);
     explicit MessageIdentifier();
-    void identifyMessage(
-            const std::__cxx11::basic_string<char> &message,
-            const std::__cxx11::basic_string<char> &senderName
-    );
+    void identifyMessage(const std::string &message, const std::string &senderName);
 };
 
 

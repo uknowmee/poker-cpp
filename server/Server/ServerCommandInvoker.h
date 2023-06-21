@@ -22,6 +22,11 @@ public:
             int value,
             const std::string &senderName
     ) = 0;
+    virtual void invokeCommand(
+            const std::string &command,
+            std::vector<int> values,
+            const std::string &senderName
+    ) = 0;
     virtual void invokeInvalidCommand(
             const std::string &messageInfo,
             const std::string &senderName

@@ -30,9 +30,11 @@ void Server::start() {
 }
 
 void Server::stop() {
+
     broadcastMessage(MessagePrinter::serverStopMessage());
     connectionManager.disconnectAllClients();
     connectionManager.closeServerSocket();
+    sleep(1);
     exit(0);
 }
 
@@ -92,7 +94,11 @@ void *Server::handleClient(void *arg) {
 
     connectionManager.startListening(clientConnection, onMsgReceive);
 
-    serverInstance->removePlayer(clientConnection->getName());
+    try {
+        serverInstance->removeDisconnectedPlayer(clientConnection->getName());
+    } catch (const std::exception &e) {
+        std::cout << e.what() << std::endl;
+    }
 
     return nullptr;
 }
@@ -114,11 +120,12 @@ void Server::addPlayer(const std::string &playerName) {
     checkStartGame();
 }
 
-void Server::removePlayer(const std::string &playerName) {
-    gameService.removePlayer(playerName);
+void Server::removeDisconnectedPlayer(const std::string &playerName) {
+    gameService.removeDisconnectedPlayer(playerName);
 
     std::string message = MessagePrinter::printRemovePlayerMessage(playerName);
     broadcastMessageExceptSender(message, playerName);
+    usleep(50000);
     broadcastMessage(MessagePrinter::numberOfConnectedPlayersInfoMessage(connectionManager.getNumOfPlayers()));
 }
 
@@ -136,7 +143,11 @@ void Server::checkStartGame() {
 
 // ServerGameController
 void Server::disconnectClient(const std::string &clientName) {
-    // todo implement
+    std::string message = MessagePrinter::printDisconnectClientMessage(clientName);
+    broadcastMessageExceptSender(message, clientName);
+    broadcastMessage(MessagePrinter::numberOfConnectedPlayersInfoMessage(connectionManager.getNumOfPlayers()));
+
+    connectionManager.disconnectClient(clientName);
 }
 
 // ServerMessageSender
@@ -162,19 +173,24 @@ void Server::sendToClient(const std::string &message, const std::string &receive
 
 // ServerCommandInvoker
 void Server::invokeByeCommand(const std::string &senderName) {
-    // todo implement
+    sendToClient(MessagePrinter::byeMessage(), senderName);
+    connectionManager.disconnectClient(senderName);
+    gameService.removeDisconnectedPlayer(senderName);
 }
 
 void Server::invokeHelpCommand(const std::string &senderName) {
-    // todo implement
+    sendToClient(MessagePrinter::helpMessage(), senderName);
 }
 
 void Server::invokeCommand(const std::string &command, const std::string &senderName) {
     // todo implement
-    broadcastMessageExceptSender("[" + senderName + "]: " + command, senderName);
 }
 
 void Server::invokeCommand(const std::string &command, int value, const std::string &senderName) {
+    // todo implement
+}
+
+void Server::invokeCommand(const std::string &command, std::vector<int> values, const std::string &senderName) {
     // todo implement
 }
 

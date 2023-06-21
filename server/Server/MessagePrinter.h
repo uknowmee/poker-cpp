@@ -8,14 +8,15 @@
 
 #include <string>
 #include <iostream>
+#include "ParsedMessage.h"
 
 class MessagePrinter {
 
 public:
     MessagePrinter() = default;
     static void printMessage(
-            const std::__cxx11::basic_string<char> &message,
-            const std::__cxx11::basic_string<char> &senderName
+            const std::string &message,
+            const std::string &senderName
     );
     static void printStartGameMessage();
     static std::string printRemovePlayerMessage(const std::string &playerName);
@@ -25,6 +26,12 @@ public:
     static std::string numberOfConnectedPlayersInfoMessage(int numOfPlayers);
     static std::string serverStopCommandMessage();
     static std::string serverStopMessage();
+    static std::string byeMessage();
+    static std::string invalidCommandMessage(const std::string& message);
+    static std::string printDisconnectClientMessage(const std::string &clientName);
+    static std::string helpMessage();
+    static std::string addIndentation(const std::string &input, const std::string &indent);
+    static void printParsedMessage(const ParsedMessage& parsedMessage);
 };
 
 

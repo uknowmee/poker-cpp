@@ -38,7 +38,7 @@ private:
     static void *handleConsole(void *arg);
     static void *handleClient(void *arg);
     void addPlayer(const std::string &playerName);
-    void removePlayer(const std::string &playerName);
+    void removeDisconnectedPlayer(const std::string &playerName);
     void onMessageReceived(const std::string &message, const std::string &senderName);
     void checkStartGame();
 
@@ -61,6 +61,7 @@ private:
     // ServerCommandInvoker
     void invokeCommand(const std::string &command, const std::string &senderName) override;
     void invokeCommand(const std::string &command, int value, const std::string &senderName) override;
+    void invokeCommand(const std::string &command, std::vector<int> values, const std::string &senderName) override;
     void invokeInvalidCommand(const std::string &messageInfo, const std::string &senderName) override;
     void invokeByeCommand(const std::string &senderName) override;
     void invokeHelpCommand(const std::string &senderName) override;

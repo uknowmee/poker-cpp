@@ -25,6 +25,6 @@ void GameService::addPlayer(const std::string &playerName) {
     game.addPlayer(playerName);
 }
 
-void GameService::removePlayer(const std::string &playerName) {
+void GameService::removeDisconnectedPlayer(const std::string &playerName) {
     game.removePlayer(playerName);
 }

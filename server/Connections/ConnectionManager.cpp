@@ -77,7 +77,7 @@ ClientConnection *ConnectionManager::acceptConnection(bool isGameStarted) {
 
 void ConnectionManager::startListening(
         ClientConnection *connection,
-        const std::function<void(const std::string &, const std::string &)>& onMessageReceived
+        const std::function<void(const std::string &, const std::string &)> &onMessageReceived
 ) {
     int socket = connection->getSocket();
     std::string clientName = connection->getName();
@@ -90,15 +90,18 @@ void ConnectionManager::startListening(
         long bytesRead = recv(socket, buffer, sizeof(buffer), 0);
 
         if (bytesRead <= 0) {
+            sleep(1);
             break;
         }
 
         onMessageReceived(buffer, clientName);
     }
 
-    removeConnection(connection);
-    close(socket);
-    delete connection;
+    if (std::find(connections.begin(), connections.end(), connection) != connections.end()) {
+        removeConnection(connection);
+        close(socket);
+        delete connection;
+    }
 }
 
 void ConnectionManager::closeServerSocket() const {
@@ -176,10 +179,10 @@ std::string ConnectionManager::findNewClientName() {
 }
 
 int ConnectionManager::getNumOfPlayers() const {
-    return (int)connections.size();
+    return (int) connections.size();
 }
 
-void ConnectionManager::broadcastMessage(const std::string& message) {
+void ConnectionManager::broadcastMessage(const std::string &message) {
     pthread_mutex_lock(&mutex);
     for (auto &connection: connections) {
         send(connection->getSocket(), message.c_str(), message.size(), 0);
@@ -196,3 +199,20 @@ void ConnectionManager::disconnectAllClients() {
     connections.clear();
     pthread_mutex_unlock(&mutex);
 }
+
+void ConnectionManager::disconnectClient(const std::string& clientName) {
+    pthread_mutex_lock(&mutex);
+
+    connections.erase(std::remove_if(connections.begin(), connections.end(),
+                                     [&](ClientConnection* connection) {
+                                         if (connection->getName() == clientName) {
+                                             close(connection->getSocket());
+                                             delete connection;
+                                             return true;
+                                         }
+                                         return false;
+                                     }), connections.end());
+
+    pthread_mutex_unlock(&mutex);
+}
+
