@@ -30,7 +30,12 @@ public:
     static std::string invalidCommandMessage(const std::string& message);
     static std::string printDisconnectClientMessage(const std::string &clientName);
     static std::string helpMessage();
+    static std::string gameAlreadyStartedMessage();
     static std::string addIndentation(const std::string &input, const std::string &indent);
+    static std::string gameEndedDueToDisconnectionMessage(const std::string& playerName);
+    static std::string notYourTurnMessage(const std::string& playerName);
+    static std::string playerInfoMessage(const std::string& playerInfo);
+    static std::string gameNotStartedMessage();
     static void printParsedMessage(const ParsedMessage& parsedMessage);
 };
 

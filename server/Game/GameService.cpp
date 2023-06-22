@@ -3,14 +3,19 @@
 //
 
 #include "GameService.h"
-#include "../Server/Server.h"
 
-GameService::GameService(Game game, ServerGameController *serverGameController)
-        : game(game), serverGameController(serverGameController) {
+#include <utility>
+#include <unistd.h>
+
+
+GameService GameService::createGameService(ServerGameController *serverGameController, int maxNumOfPlayers) {
+    return GameService(maxNumOfPlayers, serverGameController);
 }
 
-GameService GameService::createGameService(ServerGameController *serverGameController) {
-    return GameService(Game::createGame(), serverGameController);
+GameService::GameService(int maxNumOfPlayers, ServerGameController *serverGameController)
+        : serverGameController(serverGameController) {
+    game = Game::createGame(maxNumOfPlayers);
+    deckMaster = DeckMaster::createDeckMaster();
 }
 
 bool GameService::isGameStarted() {
@@ -18,25 +23,190 @@ bool GameService::isGameStarted() {
 }
 
 void GameService::startGame() {
-    game.start();
+    game.resetCards(DeckMaster::createFabricDeck());
+    game.setStarted(true);
+    game.addToBank(game.getMaxNumOfPlayers() * 2);
+    removeCreditFromPlayers(game.getPlayersRef());
+    game.firstPlayer().setTurn(true);
+    game.setFirstPart();
+    game.setPlayingPlayers(game.getPlayersCopy());
+    game.setCurrent(game.firstPlayingPlayer());
+    game.setNext(game.secondPlayingPlayer());
+    DeckMaster::dealTheCards(game.getPlayingPlayersRef(), game.getCardsRef());
+    deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
 }
 
-void GameService::addPlayer(const std::string &playerName) {
-    game.addPlayer(playerName);
+void GameService::removeCreditFromPlayers(std::vector<Player> &players) {
+    for (auto &player: players) {
+        player.removeCredit(2);
+    }
+}
+
+void GameService::gameResetBetweenRounds() {
+    game.setBid(0);
+    adjustWinnersBalance(game.getWinnersRef(), game.getBankValue());
+    game.setBank(0);
+    game.resetWinners();
+    DeckMaster::collectCardsFromPlayingPlayers(game.getPlayingPlayersRef(), game.getCardsRef());
+    DeckMaster::dealTheCards(game.getPlayingPlayersRef(), game.getCardsRef());
+    game.addToBank(game.getNumOfPlayingPlayers());
+    removeCreditFromPlayers(game.getPlayingPlayersRef());
+    game.setLast(nullptr);
+    game.setCurrent(game.firstPlayingPlayer());
+    game.setNext(game.secondPlayingPlayer());
+    deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
+}
+
+void GameService::adjustWinnersBalance(std::vector<Player *> &players, int value) {
+    for (auto &player: players) {
+        player->addCredit(value);
+    }
+}
+
+void GameService::addPlayer(std::string playerName) {
+    game.addPlayer(Player::createPlayer(std::string(std::move(playerName))));
 }
 
 void GameService::removeDisconnectedPlayer(const std::string &playerName) {
-    game.removePlayer(playerName);
+    if (!game.isStarted()) {
+        game.removePlayer(playerName);
+        std::string message = MessagePrinter::printRemovePlayerMessage(playerName);
+        serverGameController->broadcastMessageExceptSender(message, playerName);
+        return;
+    }
+
+    if (playerIsNotKicked(playerName)) { resetGame(playerName); }
+}
+
+void GameService::resetGame(const std::string& playerName) {
+
+    std::vector <Player> players = game.getPlayingPlayers();
+    for (Player &player: players) {
+        serverGameController->disconnectClient(player.getName());
+    }
+
+    serverGameController->broadcastMessage(MessagePrinter::gameEndedDueToDisconnectionMessage(playerName));
+    game = Game::createGame(game.getMaxNumOfPlayers());
+    deckMaster = DeckMaster::createDeckMaster();
 }
 
 void GameService::invokeCommand(const std::string &command, const std::string &senderName) {
+    if (!game.isStarted()) { return notStarted(senderName); }
 
+    if (command == "info") { return invokeInfo(senderName); }
+
+    if (isSenderNotCurrent(senderName)) { return notCurrent(senderName); }
+    if (command == "fold") { return invokeFold(senderName); }
+    if (command == "check") { return invokeCheck(senderName); }
+    if (command == "call") { return invokeCall(senderName); }
+    if (command == "all") { return invokeAll(senderName); }
+    if (command == "cya") { return invokeCya(senderName); }
+}
+
+bool GameService::isSenderNotCurrent(const std::string &senderName) {
+    return game.currentPlayer().getName() != senderName;
+}
+
+void GameService::notCurrent(const std::string &senderName) {
+    serverGameController->sendToClient(MessagePrinter::notYourTurnMessage(senderName), senderName);
 }
 
 void GameService::invokeCommand(const std::string &command, int value, const std::string &senderName) {
+    if (!game.isStarted()) { return notStarted(senderName); }
 
+    if (isSenderNotCurrent(senderName)) { return notCurrent(senderName); }
+    if (command == "bet") { return invokeBet(senderName, value); }
+    if (command == "raise") { return invokeRaise(senderName, value); }
 }
 
-void GameService::invokeCommand(const std::string &command, const std::vector<int>& values, const std::string &senderName) {
+void
+GameService::invokeCommand(const std::string &command, const std::vector<int> &values, const std::string &senderName) {
+    if (!game.isStarted()) { return notStarted(senderName); }
+
+    if (isSenderNotCurrent(senderName)) { return notCurrent(senderName); }
+    if (command == "exchange") { return invokeExchange(senderName, values); }
+}
+
+bool GameService::playerIsNotKicked(const std::string &playerName) {
+    std::vector<Player> players = game.getPlayingPlayers();
+    Player player = std::find_if(
+            players.begin(), players.end(),
+            [&playerName](const Player &player) {
+                return player.getName() == playerName;
+            }
+    ).operator*();
+    return !player.isKicked();
+}
+
+void GameService::invokeInfo(const std::string &senderName) {
+    serverGameController->sendToClient(MessagePrinter::playerInfoMessage(game.playingPlayer(senderName).toString()), senderName);
+}
+
+void GameService::invokeFold(const std::string &senderName) {
+    // todo implement
+}
+
+void GameService::invokeCheck(const std::string &senderName) {
+    // todo implement
+}
+
+void GameService::invokeCall(const std::string &senderName) {
+    // todo implement
+}
+
+void GameService::invokeAll(const std::string &senderName) {
+    // todo implement
+}
+
+void GameService::invokeCya(const std::string &senderName) {
+    // todo implement
+}
+
+void GameService::invokeBet(const std::string &senderName, int value) {
+    // todo implement
+}
+
+void GameService::invokeRaise(const std::string &senderName, int value) {
+    // todo implement
+}
+
+void GameService::invokeExchange(const std::string &senderName, const std::vector<int> &values) {
+    // todo implement
+}
+
+void GameService::moveAccepted(){
+    updateQueue();
+    updateIfFirstPlayerReadyForExchange();
+    updateIfSecondPartFinished();
+}
+
+void GameService::proceedExchange(){
+    // todo implement
+}
+
+void GameService::winnersCheck(){
+    // todo implement finish round / game if needed
+}
+
+void GameService::updateQueue() {
+// todo implement
+}
+
+void GameService::updateIfFirstPlayerReadyForExchange() {
+// todo implement
+}
+
+void GameService::updateIfSecondPartFinished() {
+// todo implement
+}
+
+std::string GameService::toString() const {
+    return "Game{\n" +
+            MessagePrinter::addIndentation(game.toString(), "\t") +
+           "\n}";
+}
+
+void GameService::notStarted(const std::string &senderName) {
+    serverGameController->sendToClient(MessagePrinter::gameNotStartedMessage(), senderName);
 
 }

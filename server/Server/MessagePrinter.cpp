@@ -104,3 +104,23 @@ std::string MessagePrinter::addIndentation(const std::string& input, const std::
 
     return result.str();
 }
+
+std::string MessagePrinter::gameAlreadyStartedMessage() {
+    return "Game has already started";
+}
+
+std::string MessagePrinter::gameEndedDueToDisconnectionMessage(const std::string& playerName) {
+    return "Game has ended due to " + playerName + " disconnection";
+}
+
+std::string MessagePrinter::notYourTurnMessage(const std::string& playerName) {
+    return "It's not your turn " + playerName + "!";
+}
+
+std::string MessagePrinter::playerInfoMessage(const std::string& playerInfo) {
+    return "Player info:\n" + addIndentation(playerInfo, "\t") ;
+}
+
+std::string MessagePrinter::gameNotStartedMessage() {
+    return "Game has not started yet";
+}

@@ -46,7 +46,7 @@ void ConnectionManager::prepareServerSocket() {
     std::cout << "Server started. Listening for connections..." << std::endl;
 }
 
-ClientConnection *ConnectionManager::acceptConnection(bool isGameStarted) {
+ClientConnection *ConnectionManager::acceptConnection(bool isGameStarted, bool shouldBlock) {
     sockaddr_in clientAddress{};
 
     socklen_t clientAddressLength = sizeof(clientAddress);
@@ -57,7 +57,7 @@ ClientConnection *ConnectionManager::acceptConnection(bool isGameStarted) {
         throw std::runtime_error("Error accepting client connection.");
     }
 
-    if (isGameStarted) {
+    if (isGameStarted && shouldBlock) {
         throw std::runtime_error("Game already started. Closing connection.");
     }
 

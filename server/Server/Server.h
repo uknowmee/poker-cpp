@@ -10,6 +10,7 @@
 #include <iostream>
 #include <cstring>
 #include <unistd.h>
+#include <mutex>
 #include "../Connections/ConnectionManager.h"
 #include "../Connections/ClientConnection.h"
 #include "MessageIdentifier.h"
@@ -22,6 +23,7 @@
 class Server : public ServerGameController, ServerCommandInvoker {
 
 private:
+    pthread_mutex_t consoleMutex{};
     int maxNumOfPlayers;
     struct HandleClientData {
         Server *serverInstance;
@@ -35,6 +37,7 @@ private:
     Server(int serverPort, int maxNumOfPlayers);
     void startConsoleThread();
     void acceptClientConnections();
+    ClientConnection *tryMakeConnectionTwice();
     static void *handleConsole(void *arg);
     static void *handleClient(void *arg);
     void addPlayer(const std::string &playerName);
@@ -67,7 +70,7 @@ private:
     void invokeHelpCommand(const std::string &senderName) override;
 
 public:
-    static Server createServer(int serverPort, int maxNumOfPlayers);
+    static Server *createServer(int serverPort, int maxNumOfPlayers);
     void start();
     void stop();
 };

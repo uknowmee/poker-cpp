@@ -31,7 +31,7 @@ public:
     ConnectionManager();
 
     static ConnectionManager createConnectionManager(int serverPort, int numOfPlayers);
-    ClientConnection *acceptConnection(bool isGameSta);
+    ClientConnection *acceptConnection(bool isGameSta, bool should);
     void startListening(
             ClientConnection *connection,
             const std::function<void(const std::string&, const std::string&)>&
