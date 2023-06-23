@@ -5,18 +5,7 @@
 #include <algorithm>
 #include "MessageIdentifier.h"
 
-MessageIdentifier MessageIdentifier::createMessageIdentifier(ServerCommandInvoker *serverCommandInvoker) {
-    return MessageIdentifier(serverCommandInvoker);
-}
-
-MessageIdentifier::MessageIdentifier() : serverCommandInvoker(nullptr) {
-}
-
-MessageIdentifier::MessageIdentifier(ServerCommandInvoker *serverMessageSender) {
-    this->serverCommandInvoker = serverMessageSender;
-}
-
-void MessageIdentifier::identifyMessage(
+ParsedMessage MessageIdentifier::identifyMessage(
         const std::string &message,
         const std::string &senderName
 ) {
@@ -24,36 +13,7 @@ void MessageIdentifier::identifyMessage(
     ParsedMessage parsedMessage = MessageIdentifier::parseMessage(message, senderName);
     MessagePrinter::printParsedMessage(parsedMessage);
 
-    parsedMessage.isValidCommand
-    ? callExactInvoke(parsedMessage)
-    : serverCommandInvoker->invokeInvalidCommand(
-            MessagePrinter::invalidCommandMessage(parsedMessage.message),
-            senderName
-    );
-}
-
-void MessageIdentifier::callExactInvoke(const ParsedMessage &parsedMessage) {
-    if (parsedMessage.command == "bye") {
-        serverCommandInvoker->invokeByeCommand(parsedMessage.senderName);
-        return;
-    }
-
-    if (parsedMessage.command == "help") {
-        serverCommandInvoker->invokeHelpCommand(parsedMessage.senderName);
-        return;
-    }
-
-    if (parsedMessage.hasValue) {
-        serverCommandInvoker->invokeCommand(parsedMessage.command, parsedMessage.value, parsedMessage.senderName);
-        return;
-    }
-
-    if (parsedMessage.hasValues) {
-        serverCommandInvoker->invokeCommand(parsedMessage.command, parsedMessage.values, parsedMessage.senderName);
-        return;
-    }
-
-    serverCommandInvoker->invokeCommand(parsedMessage.command, parsedMessage.senderName);
+    return parsedMessage;
 }
 
 ParsedMessage MessageIdentifier::parseMessage(

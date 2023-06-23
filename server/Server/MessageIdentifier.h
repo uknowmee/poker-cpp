@@ -8,16 +8,12 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include "ServerCommandInvoker.h"
 #include "MessagePrinter.h"
 #include "ParsedMessage.h"
 
 class MessageIdentifier {
 
 private:
-    ServerCommandInvoker *serverCommandInvoker;
-
-    explicit MessageIdentifier(ServerCommandInvoker *serverCommandInvoker);
     static ParsedMessage parseMessage(const std::string &message, const std::string &senderName);
     static ParsedMessage makeBye(const std::string &senderName);
     static ParsedMessage makeHelp(const std::string &senderName);
@@ -32,14 +28,12 @@ private:
     static ParsedMessage tryMakeExchange(const std::string &message, std::vector<std::string> messageVector, const std::string &senderName);
     static ParsedMessage makeInvalid(const std::string &message, const std::string &senderName);
 
-    void callExactInvoke(const ParsedMessage& parsedMessage);
     static std::vector<std::string> splitString(const std::string &input);
     static bool isNumber(const std::string& mayBeValue);
 
 public:
-    static MessageIdentifier createMessageIdentifier(ServerCommandInvoker *serverCommandInvoker);
-    explicit MessageIdentifier();
-    void identifyMessage(const std::string &message, const std::string &senderName);
+    MessageIdentifier() = default;
+    static ParsedMessage identifyMessage(const std::string &message, const std::string &senderName);
 };
 
 

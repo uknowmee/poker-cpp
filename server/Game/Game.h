@@ -57,9 +57,11 @@ public:
     int getMaxNumOfPlayers() const;
     int getBankValue() const;
     int getNumOfPlayingPlayers();
+    int getNumOfPlayers();
     bool isStarted() const;
-    std::string toString() const;
+    bool isInLobby(const std::string &playerName);
 
+    std::string toString() const;
     void setStarted(bool toSet);
     void setFirstPart();
     void setPlayingPlayers(std::vector<Player> players);

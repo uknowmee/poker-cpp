@@ -4,8 +4,10 @@
 
 #include "Player.h"
 
-Player Player::createPlayer(const std::string& playerName) {
-    return Player(playerName);
+#include <utility>
+
+Player Player::createPlayer(std::string playerName) {
+    return Player(std::move(playerName));
 }
 
 Player::Player(std::string playerName)

@@ -4,7 +4,6 @@
 
 #include "GameService.h"
 
-#include <utility>
 #include <unistd.h>
 
 
@@ -20,6 +19,14 @@ GameService::GameService(int maxNumOfPlayers, ServerGameController *serverGameCo
 
 bool GameService::isGameStarted() {
     return game.isStarted();
+}
+
+void GameService::tryStartGame() {
+    if (!isGameStarted()) {
+        startGame();
+        MessagePrinter::printStartGameMessage();
+        serverGameController->broadcastMessage(MessagePrinter::gameStartMessage());
+    }
 }
 
 void GameService::startGame() {
@@ -63,44 +70,42 @@ void GameService::adjustWinnersBalance(std::vector<Player *> &players, int value
     }
 }
 
-void GameService::addPlayer(std::string playerName) {
-    game.addPlayer(Player::createPlayer(std::string(std::move(playerName))));
+void GameService::addPlayer(const std::string& playerName) {
+    game.addPlayer(Player::createPlayer(playerName));
+
+    std::string message = MessagePrinter::printAddPlayerMessage(playerName);
+    serverGameController->broadcastMessageExceptSender(message, playerName);
+    serverGameController->sendToClient(MessagePrinter::welcomeMessage(playerName), playerName);
+    usleep(50000);
+    serverGameController->broadcastMessage(MessagePrinter::numberOfConnectedPlayersInfoMessage(game.getNumOfPlayers()));
 }
 
 void GameService::removeDisconnectedPlayer(const std::string &playerName) {
-    if (!game.isStarted()) {
-        game.removePlayer(playerName);
-        std::string message = MessagePrinter::printRemovePlayerMessage(playerName);
-        serverGameController->broadcastMessageExceptSender(message, playerName);
-        return;
-    }
+    if (!game.isInLobby(playerName)) { return; }
+    if (!game.isStarted()) { return removePlayerIfNotStarted(playerName); }
+    if (playerIsNotKicked(playerName)) { return resetGame(playerName); }
+}
 
-    if (playerIsNotKicked(playerName)) { resetGame(playerName); }
+void GameService::removePlayerIfNotStarted(const std::string &playerName) {
+    game.removePlayer(playerName);
+
+    std::string message = MessagePrinter::printRemovePlayerMessage(playerName);
+    serverGameController->broadcastMessageExceptSender(message, playerName);
+    usleep(50000);
+    serverGameController->broadcastMessage(MessagePrinter::numberOfConnectedPlayersInfoMessage(game.getNumOfPlayers()));
 }
 
 void GameService::resetGame(const std::string& playerName) {
-
     std::vector <Player> players = game.getPlayingPlayers();
+    serverGameController->broadcastMessage(MessagePrinter::printGameEndedDueToDisconnectionMessage(playerName));
+
     for (Player &player: players) {
+        MessagePrinter::printRemovePlayerMessage(player.getName());
         serverGameController->disconnectClient(player.getName());
     }
 
-    serverGameController->broadcastMessage(MessagePrinter::gameEndedDueToDisconnectionMessage(playerName));
     game = Game::createGame(game.getMaxNumOfPlayers());
     deckMaster = DeckMaster::createDeckMaster();
-}
-
-void GameService::invokeCommand(const std::string &command, const std::string &senderName) {
-    if (!game.isStarted()) { return notStarted(senderName); }
-
-    if (command == "info") { return invokeInfo(senderName); }
-
-    if (isSenderNotCurrent(senderName)) { return notCurrent(senderName); }
-    if (command == "fold") { return invokeFold(senderName); }
-    if (command == "check") { return invokeCheck(senderName); }
-    if (command == "call") { return invokeCall(senderName); }
-    if (command == "all") { return invokeAll(senderName); }
-    if (command == "cya") { return invokeCya(senderName); }
 }
 
 bool GameService::isSenderNotCurrent(const std::string &senderName) {
@@ -109,22 +114,6 @@ bool GameService::isSenderNotCurrent(const std::string &senderName) {
 
 void GameService::notCurrent(const std::string &senderName) {
     serverGameController->sendToClient(MessagePrinter::notYourTurnMessage(senderName), senderName);
-}
-
-void GameService::invokeCommand(const std::string &command, int value, const std::string &senderName) {
-    if (!game.isStarted()) { return notStarted(senderName); }
-
-    if (isSenderNotCurrent(senderName)) { return notCurrent(senderName); }
-    if (command == "bet") { return invokeBet(senderName, value); }
-    if (command == "raise") { return invokeRaise(senderName, value); }
-}
-
-void
-GameService::invokeCommand(const std::string &command, const std::vector<int> &values, const std::string &senderName) {
-    if (!game.isStarted()) { return notStarted(senderName); }
-
-    if (isSenderNotCurrent(senderName)) { return notCurrent(senderName); }
-    if (command == "exchange") { return invokeExchange(senderName, values); }
 }
 
 bool GameService::playerIsNotKicked(const std::string &playerName) {
@@ -138,8 +127,9 @@ bool GameService::playerIsNotKicked(const std::string &playerName) {
     return !player.isKicked();
 }
 
-void GameService::invokeInfo(const std::string &senderName) {
-    serverGameController->sendToClient(MessagePrinter::playerInfoMessage(game.playingPlayer(senderName).toString()), senderName);
+//GameServiceCommandController
+std::string GameService::playingPlayerInfo(const std::string &playerName){
+    return game.playingPlayer(playerName).toString();
 }
 
 void GameService::invokeFold(const std::string &senderName) {
@@ -208,5 +198,4 @@ std::string GameService::toString() const {
 
 void GameService::notStarted(const std::string &senderName) {
     serverGameController->sendToClient(MessagePrinter::gameNotStartedMessage(), senderName);
-
 }

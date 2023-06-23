@@ -37,6 +37,12 @@ std::string MessagePrinter::printAddPlayerMessage(const std::string &playerName)
     return message;
 }
 
+std::string MessagePrinter::printGameEndedDueToDisconnectionMessage(const std::string& playerName) {
+    std::string message = "Game has ended due to " + playerName + " disconnection";
+    std::cout << message << std::endl;
+    return message;
+}
+
 std::string MessagePrinter::gameStartMessage() {
     return "The game has started!";
 }
@@ -65,10 +71,6 @@ std::string MessagePrinter::byeMessage() {
 
 std::string MessagePrinter::invalidCommandMessage(const std::string &message) {
     return "Couldn't parse command from message: " + message;
-}
-
-std::string MessagePrinter::printDisconnectClientMessage(const std::string &clientName) {
-    return "Client " + clientName + " is disconnecting.";
 }
 
 std::string MessagePrinter::helpMessage() {
@@ -109,10 +111,6 @@ std::string MessagePrinter::gameAlreadyStartedMessage() {
     return "Game has already started";
 }
 
-std::string MessagePrinter::gameEndedDueToDisconnectionMessage(const std::string& playerName) {
-    return "Game has ended due to " + playerName + " disconnection";
-}
-
 std::string MessagePrinter::notYourTurnMessage(const std::string& playerName) {
     return "It's not your turn " + playerName + "!";
 }
@@ -123,4 +121,8 @@ std::string MessagePrinter::playerInfoMessage(const std::string& playerInfo) {
 
 std::string MessagePrinter::gameNotStartedMessage() {
     return "Game has not started yet";
+}
+
+std::string MessagePrinter::invalidServerCommand() {
+    return "Invalid server command";
 }

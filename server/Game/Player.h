@@ -31,7 +31,7 @@ private:
     explicit Player(std::string playerName);
 
 public:
-    static Player createPlayer(const std::string& playerName);
+    static Player createPlayer(std::string playerName);
     void removeCredit(int toRemove);
     void addCredit(int toAdd);
     void addCard(Card &card);

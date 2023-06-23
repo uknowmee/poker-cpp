@@ -193,3 +193,14 @@ std::string Game::getPlayingPlayerNamesAndCards() const {
     return playingPlayersNamesAndCards;
 }
 
+bool Game::isInLobby(const std::string &playerName) {
+    return std::find_if(
+            players.begin(), players.end(),
+            [&playerName](const Player &player) { return player.getName() == playerName; }
+    ) != players.end();
+}
+
+int Game::getNumOfPlayers() {
+    return (int) players.size();
+}
+
