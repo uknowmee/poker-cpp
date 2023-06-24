@@ -11,7 +11,7 @@
 class BetCommand : public ClientCommand {
 
 private:
-    void exactExecute() override;
+    bool exactExecute() override;
 
 public:
     explicit BetCommand(

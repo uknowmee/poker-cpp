@@ -15,13 +15,11 @@ ClientCommand::ClientCommand(
 }
 
 void ClientCommand::execute() {
-    handleNotStartedOrNotYourTurn();
-}
-
-void ClientCommand::handleNotStartedOrNotYourTurn() {
     if (!gameService->isGameStarted()) { return sendGameNotStartedMessage(); }
     if (!gameService->isPlayerTurn(parsedMessage.senderName)) { return sendNotYourTurnMessage(); }
-    return exactExecute();
+    if (exactExecute()) { return sendToAllPlayersWhatHappened(); }
+
+    sendPlayerThatMoveNotAllowed();
 }
 
 void ClientCommand::sendGameNotStartedMessage() {
@@ -39,4 +37,16 @@ std::string ClientCommand::notYourTurnMessage() {
 
 std::string ClientCommand::gameNotStartedMessage() {
     return MessagePrinter::gameNotStartedMessage(gameService->numOfPlayers());
+}
+
+void ClientCommand::sendToAllPlayersWhatHappened() {
+    server->broadcastMessage(
+            MessagePrinter::whatHappenedMessage(
+                    parsedMessage.message, gameService->currentPlayerName(), gameService->lastPlayerName()
+            )
+    );
+}
+
+void ClientCommand::sendPlayerThatMoveNotAllowed() {
+    server->sendToClient(MessagePrinter::moveNotAllowedMessage(parsedMessage.message), parsedMessage.senderName);
 }

@@ -11,7 +11,7 @@
 class FoldCommand : public ClientCommand{
 
 private:
-    void exactExecute() override;
+    bool exactExecute() override;
 
     public:
     explicit FoldCommand(

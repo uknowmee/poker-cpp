@@ -22,15 +22,18 @@ protected:
             const ParsedMessage &pParsedMessage,
             GameServiceCommandController *gameService);
 
-    virtual void exactExecute() {};
+    virtual bool exactExecute() {return false;};
     void execute() override;
     std::string gameNotStartedMessage();
 
 private:
-    void handleNotStartedOrNotYourTurn();
     void sendGameNotStartedMessage();
     void sendNotYourTurnMessage();
     std::string notYourTurnMessage();
+
+    void sendToAllPlayersWhatHappened();
+
+    void sendPlayerThatMoveNotAllowed();
 };
 
 

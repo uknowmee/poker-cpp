@@ -12,14 +12,15 @@ public:
     virtual bool isPlayerTurn(const std::string &senderName) = 0;
     virtual int numOfPlayers() = 0;
     virtual std::string currentPlayerName() = 0;
+    virtual std::string lastPlayerName() = 0;
 
-    virtual void invokeFold(const std::string &senderName) = 0;
-    virtual void invokeCheck(const std::string &senderName) = 0;
-    virtual void invokeCall(const std::string &senderName) = 0;
-    virtual void invokeAll(const std::string &senderName) = 0;
-    virtual void invokeCya(const std::string &senderName) = 0;
-    virtual void invokeBet(const std::string &senderName, int value) = 0;
-    virtual void invokeRaise(const std::string &senderName, int value) = 0;
+    virtual bool invokeFold(const std::string &senderName) = 0;
+    virtual bool invokeCheck(const std::string &senderName) = 0;
+    virtual bool invokeCall(const std::string &senderName) = 0;
+    virtual bool invokeAll(const std::string &senderName) = 0;
+    virtual bool invokeCya(const std::string &senderName) = 0;
+    virtual bool invokeBet(const std::string &senderName, int value) = 0;
+    virtual bool invokeRaise(const std::string &senderName, int value) = 0;
     virtual void invokeExchange(const std::string &senderName, const std::vector<int> &values) = 0;
 };
 

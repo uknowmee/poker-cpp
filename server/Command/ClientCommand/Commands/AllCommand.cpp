@@ -11,6 +11,6 @@ AllCommand::AllCommand(
 ) : ClientCommand(server, parsedMessage, gameService) {
 }
 
-void AllCommand::exactExecute() {
-    gameService->invokeAll(parsedMessage.senderName);
+bool AllCommand::exactExecute() {
+    return gameService->invokeAll(parsedMessage.senderName);
 }

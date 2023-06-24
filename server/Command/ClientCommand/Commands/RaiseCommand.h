@@ -11,7 +11,7 @@
 class RaiseCommand : public ClientCommand {
 
 private:
-    void exactExecute() override;
+    bool exactExecute() override;
 
 public:
     explicit RaiseCommand(

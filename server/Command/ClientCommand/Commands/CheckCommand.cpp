@@ -12,6 +12,6 @@ CheckCommand::CheckCommand(
 
 }
 
-void CheckCommand::exactExecute() {
-    gameService->invokeCheck(parsedMessage.senderName);
+bool CheckCommand::exactExecute() {
+    return gameService->invokeCheck(parsedMessage.senderName);
 }

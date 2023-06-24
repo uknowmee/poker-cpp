@@ -16,7 +16,7 @@ DeckMaster::DeckMaster(Evaluator  evaluator) : evaluator(std::move(evaluator)) {
 
 DeckMaster::DeckMaster() = default;
 
-void DeckMaster::dealTheCards(std::vector<Player> &players, std::vector<Card> &cards) {
+void DeckMaster::dealTheCards(std::deque<Player> &players, std::vector<Card> &cards) {
     shuffleBeforeDealing(cards);
     sortPlayingPlayersCards(players);
 
@@ -36,7 +36,7 @@ void DeckMaster::shuffleBeforeDealing(std::vector<Card> &cards) {
     std::shuffle(cards.begin(), cards.end(), g);
 }
 
-void DeckMaster::sortPlayingPlayersCards(std::vector<Player> &players) {
+void DeckMaster::sortPlayingPlayersCards(std::deque<Player> &players) {
     for (Player& player : players) {
         std::vector<Card>& cards = player.playerCardsRef();
 
@@ -48,7 +48,7 @@ void DeckMaster::sortPlayingPlayersCards(std::vector<Player> &players) {
     }
 }
 
-void DeckMaster::collectCardsFromPlayingPlayers(std::vector<Player> &players, std::vector<Card> &cards) {
+void DeckMaster::collectCardsFromPlayingPlayers(std::deque<Player> &players, std::vector<Card> &cards) {
     for (auto &player: players) {
         collectCardsFromPlayer(player, cards);
     }
@@ -74,7 +74,7 @@ void DeckMaster::collectPlayerCards(Player &player, std::vector<Card> &cards, st
     }
 }
 
-void DeckMaster::evaluatePlayingPlayersCards(std::vector<Player> &players) {
+void DeckMaster::evaluatePlayingPlayersCards(std::deque<Player> &players) {
     for (Player &player: players) {
 
         Evaluator::Evaluation evaluation = evaluator.eval(player.cards());

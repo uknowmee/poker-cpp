@@ -11,7 +11,7 @@
 class AllCommand : public ClientCommand {
 
 private:
-    void exactExecute() override;
+    bool exactExecute() override;
 public:
     explicit AllCommand(
             ServerGameController *server,

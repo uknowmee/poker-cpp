@@ -47,10 +47,6 @@ void Game::addToBank(int toAdd) {
     bank += toAdd;
 }
 
-std::vector<Player> &Game::getPlayersRef() {
-    return players;
-}
-
 Player &Game::firstPlayer() {
     return players[0];
 }
@@ -64,7 +60,7 @@ std::vector<Player> Game::getPlayersCopy() {
 }
 
 void Game::setPlayingPlayers(std::vector<Player> toSet) {
-    playingPlayers = std::move(toSet);
+    playingPlayers = std::deque<Player>(toSet.begin(), toSet.end());
 }
 
 Player &Game::firstPlayingPlayer() {
@@ -87,7 +83,7 @@ std::vector<Card> &Game::getCardsRef() {
     return cards;
 }
 
-std::vector<Player> &Game::getPlayingPlayersRef() {
+std::deque<Player> &Game::getPlayingPlayersRef() {
     return playingPlayers;
 }
 
@@ -119,12 +115,16 @@ void Game::setLast(Player *player) {
     last = player;
 }
 
-std::vector<Player> Game::getPlayingPlayers() {
+std::deque<Player> Game::getPlayingPlayers() {
     return playingPlayers;
 }
 
 Player &Game::currentPlayer() {
     return *current;
+}
+
+Player &Game::lastPlayer() {
+    return *last;
 }
 
 void Game::resetCards(std::vector<Card> cardsToSet) {
@@ -209,7 +209,7 @@ int Game::getPart() const {
 }
 
 void Game::removeFirstFromPlayingPlayers() {
-    playingPlayers.erase(playingPlayers.begin());
+    playingPlayers.pop_front();
 }
 
 void Game::setLastPlayer(Player &player) {

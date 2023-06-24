@@ -11,6 +11,6 @@ BetCommand::BetCommand(
 ) : ClientCommand(server, parsedMessage, gameService) {
 }
 
-void BetCommand::exactExecute() {
-    gameService->invokeBet(parsedMessage.senderName, parsedMessage.value);
+bool BetCommand::exactExecute() {
+    return gameService->invokeBet(parsedMessage.senderName, parsedMessage.value);
 }

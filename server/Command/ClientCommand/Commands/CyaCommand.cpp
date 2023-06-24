@@ -12,6 +12,6 @@ CyaCommand::CyaCommand(
 
 }
 
-void CyaCommand::exactExecute() {
-    gameService->invokeCya(parsedMessage.senderName);
+bool CyaCommand::exactExecute() {
+    return gameService->invokeCya(parsedMessage.senderName);
 }

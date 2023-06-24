@@ -26,12 +26,12 @@ private:
     explicit GameService(int maxNumOfPlayers, ServerGameController *serverGameController);
     void startGame();
     void sendInfoToAllPlayingPlayers();
-    static void removeCreditFromPlayers(std::vector<Player> &players);
+    static void removeCreditFromPlayers(std::deque<Player> &players);
     void gameResetBetweenRounds();
     static void adjustWinnersBalance(std::vector<Player *> &players, int value);
     void removePlayerIfNotStarted(const std::string &playerName);
     void resetGame(const std::string& playerName);
-    void moveAccepted();
+    bool moveAccepted();
     void updateQueue();
     void updateIfFirstPlayerReadyForExchange();
     void updateIfSecondPartFinished();
@@ -44,14 +44,15 @@ private:
     bool isPlayerTurn(const std::string &senderName) override;
     int numOfPlayers() override;
     std::string currentPlayerName() override;
+    std::string lastPlayerName() override;
 
-    void invokeFold(const std::string &senderName) override;
-    void invokeCheck(const std::string &senderName) override;
-    void invokeCall(const std::string &senderName) override;
-    void invokeAll(const std::string &senderName) override;
-    void invokeCya(const std::string &senderName) override;
-    void invokeBet(const std::string &senderName, int value) override;
-    void invokeRaise(const std::string &senderName, int value) override;
+    bool invokeFold(const std::string &senderName) override;
+    bool invokeCheck(const std::string &senderName) override;
+    bool invokeCall(const std::string &senderName) override;
+    bool invokeAll(const std::string &senderName) override;
+    bool invokeCya(const std::string &senderName) override;
+    bool invokeBet(const std::string &senderName, int value) override;
+    bool invokeRaise(const std::string &senderName, int value) override;
     void invokeExchange(const std::string &senderName, const std::vector<int> &values) override;
 
 public:

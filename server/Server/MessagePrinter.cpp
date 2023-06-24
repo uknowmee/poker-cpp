@@ -165,3 +165,11 @@ std::string MessagePrinter::printExchangeFinishedMessage() {
     std::cout << message << std::endl;
     return message;
 }
+
+std::string MessagePrinter::whatHappenedMessage(const std::string& message, const std::string& currentPlayer, const std::string& lastPlayer) {
+    return "Player: " + lastPlayer + ", made a move: " + message + " now is turn of: " + currentPlayer;
+}
+
+std::string MessagePrinter::moveNotAllowedMessage(const std::string& message) {
+    return "Move not allowed: " + message;
+}

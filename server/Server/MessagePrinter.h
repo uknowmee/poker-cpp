@@ -43,6 +43,9 @@ public:
     static std::string invalidServerCommand();
     static void printParsedMessage(const ParsedMessage& parsedMessage);
     static std::string yourTurnMessage(const std::string& currentPlayerName);
+    static std::string whatHappenedMessage(const std::string& message, const std::string& currentPlayer, const std::string& lastPlayer);
+
+    static std::string moveNotAllowedMessage(const std::string& message);
 };
 
 

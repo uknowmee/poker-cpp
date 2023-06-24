@@ -10,6 +10,7 @@
 #include <vector>
 #include <utility>
 #include <algorithm>
+#include <deque>
 #include "Player.h"
 
 class Game {
@@ -19,7 +20,7 @@ private:
 
     std::vector<Card> cards;
     std::vector<Player> players;
-    std::vector<Player> playingPlayers;
+    std::deque<Player> playingPlayers;
     std::vector<Player*> winners;
     Player *last;
     Player *current;
@@ -47,16 +48,16 @@ public:
     void addToPlayingPlayers(Player &player);
     void adjustPart();
 
-    std::vector<Player> &getPlayersRef();
     std::vector<Player> getPlayersCopy();
-    std::vector<Player> &getPlayingPlayersRef();
-    std::vector<Player> getPlayingPlayers();
+    std::deque<Player> &getPlayingPlayersRef();
+    std::deque<Player> getPlayingPlayers();
     std::vector<Player *> &getWinnersRef();
     const Player &playingPlayer(const std::string &playerName);
     Player &firstPlayer();
     Player &firstPlayingPlayer();
     Player &secondPlayingPlayer();
     Player &currentPlayer();
+    Player &lastPlayer();
     std::vector<Card> &getCardsRef();
     int getMaxNumOfPlayers() const;
     int getBankValue() const;
