@@ -26,7 +26,7 @@ public:
     static void dealTheCards(std::vector<Player> &players, std::vector<Card> &cards);
     static void collectCardsFromPlayingPlayers(std::vector<Player> &players, std::vector<Card> &cards);
     static void collectCardsFromPlayer(Player &player, std::vector<Card> &cards);
-    static void collectPlayerCards(Player &player, std::vector<Card> &cards, std::vector<int> &cardsToCollect);
+    static void collectPlayerCards(Player &player, std::vector<Card> &cards, std::vector<int> cardsToCollect);
     void evaluatePlayingPlayersCards(std::vector<Player> &players);
     static std::vector<Card> createFabricDeck();
 };

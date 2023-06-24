@@ -89,7 +89,7 @@ void ConnectionManager::startListening(
         memset(buffer, 0, sizeof(buffer));
         long bytesRead = recv(socket, buffer, sizeof(buffer), 0);
 
-        if (bytesRead <= 0) {
+        if (bytesRead <= 0 || socket != connection->getSocket()) {
             sleep(1);
             break;
         }

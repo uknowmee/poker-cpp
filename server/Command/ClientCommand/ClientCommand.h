@@ -11,6 +11,7 @@
 #include "../../Game/GameServiceCommandController.h"
 
 class ClientCommand : public Command {
+
 protected:
     ServerGameController *server;
     const ParsedMessage &parsedMessage;
@@ -19,10 +20,17 @@ protected:
     explicit ClientCommand(
             ServerGameController *pController,
             const ParsedMessage &pParsedMessage,
-            GameServiceCommandController *gameService)
-            : server(pController),
-              parsedMessage(pParsedMessage),
-              gameService(gameService) {};
+            GameServiceCommandController *gameService);
+
+    virtual void exactExecute() {};
+    void execute() override;
+    std::string gameNotStartedMessage();
+
+private:
+    void handleNotStartedOrNotYourTurn();
+    void sendGameNotStartedMessage();
+    void sendNotYourTurnMessage();
+    std::string notYourTurnMessage();
 };
 
 

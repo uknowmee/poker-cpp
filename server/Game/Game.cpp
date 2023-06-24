@@ -204,3 +204,34 @@ int Game::getNumOfPlayers() {
     return (int) players.size();
 }
 
+int Game::getPart() const {
+    return part;
+}
+
+void Game::removeFirstFromPlayingPlayers() {
+    playingPlayers.erase(playingPlayers.begin());
+}
+
+void Game::setLastPlayer(Player &player) {
+    last = &player;
+}
+
+void Game::addToPlayingPlayers(Player &player) {
+    playingPlayers.push_back(player);
+}
+
+void Game::adjustPart() {
+    part++;
+}
+
+bool Game::isAllIn() const {
+    return allIn;
+}
+
+int Game::getBid() const {
+    return bid;
+}
+
+void Game::setAllIn(bool toSet) {
+    allIn = toSet;
+}

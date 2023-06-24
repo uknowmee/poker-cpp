@@ -12,6 +12,6 @@ CallCommand::CallCommand(
 
 }
 
-void CallCommand::execute() {
-
+void CallCommand::exactExecute() {
+    gameService->invokeCall(parsedMessage.senderName);
 }

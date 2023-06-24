@@ -21,6 +21,12 @@ public:
     static void printStartGameMessage();
     static std::string printRemovePlayerMessage(const std::string &playerName);
     static std::string printAddPlayerMessage(const std::string &playerName);
+    static std::string printBetTooLowMessage(int minimumBet);
+    static std::string printBetTooHighMessage();
+    static std::string printRaiseTooLowMessage(int minimumRaise);
+    static std::string printRaiseTooHighMessage();
+    static std::string printExchangeAccepted();
+    static std::string printExchangeFinishedMessage();
     static std::string gameStartMessage();
     static std::string welcomeMessage(const std::string &playerName);
     static std::string numberOfConnectedPlayersInfoMessage(int numOfPlayers);
@@ -29,14 +35,14 @@ public:
     static std::string byeMessage();
     static std::string invalidCommandMessage(const std::string& message);
     static std::string helpMessage();
-    static std::string gameAlreadyStartedMessage();
     static std::string addIndentation(const std::string &input, const std::string &indent);
     static std::string printGameEndedDueToDisconnectionMessage(const std::string& playerName);
-    static std::string notYourTurnMessage(const std::string& playerName);
+    static std::string notYourTurnMessage(const std::string& playerName, const std::string& currentPlayerName);
     static std::string playerInfoMessage(const std::string& playerInfo);
-    static std::string gameNotStartedMessage();
+    static std::string gameNotStartedMessage(const int &numOfPlayers);
     static std::string invalidServerCommand();
     static void printParsedMessage(const ParsedMessage& parsedMessage);
+    static std::string yourTurnMessage(const std::string& currentPlayerName);
 };
 
 

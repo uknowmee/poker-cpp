@@ -79,6 +79,6 @@ add_executable(
         Command/ClientCommand/Commands/ExchangeCommand.cpp
         Command/ClientCommand/Commands/ExchangeCommand.h
         Command/ClientCommand/Commands/ExchangeCommand.h
-        Command/ClientCommand/Commands/ByeCommand.cpp Command/ClientCommand/Commands/ByeCommand.h Command/ClientCommand/Commands/HelpCommand.cpp Command/ClientCommand/Commands/HelpCommand.h Command/ClientCommand/Commands/ClientInvalidCommand.cpp Command/ClientCommand/Commands/ClientInvalidCommand.h)
+        Command/ClientCommand/Commands/ByeCommand.cpp Command/ClientCommand/Commands/ByeCommand.h Command/ClientCommand/Commands/HelpCommand.cpp Command/ClientCommand/Commands/HelpCommand.h Command/ClientCommand/Commands/ClientInvalidCommand.cpp Command/ClientCommand/Commands/ClientInvalidCommand.h Command/ClientCommand/ClientCommand.cpp)
 
 target_link_libraries(server pthread)

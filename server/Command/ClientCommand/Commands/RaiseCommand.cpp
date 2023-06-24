@@ -12,6 +12,6 @@ RaiseCommand::RaiseCommand(
 
 }
 
-void RaiseCommand::execute() {
-
+void RaiseCommand::exactExecute() {
+    gameService->invokeRaise(parsedMessage.senderName, parsedMessage.value);
 }

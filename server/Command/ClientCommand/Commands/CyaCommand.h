@@ -11,7 +11,7 @@
 class CyaCommand : public ClientCommand{
 
 private:
-    void execute() override;
+    void exactExecute() override;
 
 public:
     explicit CyaCommand(

@@ -24,8 +24,11 @@ bool GameService::isGameStarted() {
 void GameService::tryStartGame() {
     if (!isGameStarted()) {
         startGame();
+
         MessagePrinter::printStartGameMessage();
+
         serverGameController->broadcastMessage(MessagePrinter::gameStartMessage());
+        sendInfoToAllPlayingPlayers();
     }
 }
 
@@ -41,6 +44,22 @@ void GameService::startGame() {
     game.setNext(game.secondPlayingPlayer());
     DeckMaster::dealTheCards(game.getPlayingPlayersRef(), game.getCardsRef());
     deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
+}
+
+void GameService::sendInfoToAllPlayingPlayers() {
+    serverGameController->sendToClient(
+            MessagePrinter::yourTurnMessage(game.currentPlayer().getName()),
+            game.currentPlayer().getName()
+    );
+
+    std::vector<Player> playingPlayers = game.getPlayingPlayers();
+    std::for_each(
+            playingPlayers.begin(), playingPlayers.end(),
+            [&](Player &player) {
+                std::string info = player.toString();
+                serverGameController->sendToClient(MessagePrinter::playerInfoMessage(info), player.getName());
+            }
+    );
 }
 
 void GameService::removeCreditFromPlayers(std::vector<Player> &players) {
@@ -70,7 +89,7 @@ void GameService::adjustWinnersBalance(std::vector<Player *> &players, int value
     }
 }
 
-void GameService::addPlayer(const std::string& playerName) {
+void GameService::addPlayer(const std::string &playerName) {
     game.addPlayer(Player::createPlayer(playerName));
 
     std::string message = MessagePrinter::printAddPlayerMessage(playerName);
@@ -95,8 +114,8 @@ void GameService::removePlayerIfNotStarted(const std::string &playerName) {
     serverGameController->broadcastMessage(MessagePrinter::numberOfConnectedPlayersInfoMessage(game.getNumOfPlayers()));
 }
 
-void GameService::resetGame(const std::string& playerName) {
-    std::vector <Player> players = game.getPlayingPlayers();
+void GameService::resetGame(const std::string &playerName) {
+    std::vector<Player> players = game.getPlayingPlayers();
     serverGameController->broadcastMessage(MessagePrinter::printGameEndedDueToDisconnectionMessage(playerName));
 
     for (Player &player: players) {
@@ -106,14 +125,6 @@ void GameService::resetGame(const std::string& playerName) {
 
     game = Game::createGame(game.getMaxNumOfPlayers());
     deckMaster = DeckMaster::createDeckMaster();
-}
-
-bool GameService::isSenderNotCurrent(const std::string &senderName) {
-    return game.currentPlayer().getName() != senderName;
-}
-
-void GameService::notCurrent(const std::string &senderName) {
-    serverGameController->sendToClient(MessagePrinter::notYourTurnMessage(senderName), senderName);
 }
 
 bool GameService::playerIsNotKicked(const std::string &playerName) {
@@ -128,74 +139,262 @@ bool GameService::playerIsNotKicked(const std::string &playerName) {
 }
 
 //GameServiceCommandController
-std::string GameService::playingPlayerInfo(const std::string &playerName){
+std::string GameService::playingPlayerInfo(const std::string &playerName) {
     return game.playingPlayer(playerName).toString();
 }
 
+bool GameService::isPlayerTurn(const std::string &senderName) {
+    return game.currentPlayer().getName() == senderName;
+}
+
+int GameService::numOfPlayers() {
+    return game.getNumOfPlayers();
+}
+
+std::string GameService::currentPlayerName() {
+    return game.currentPlayer().getName();
+}
+
 void GameService::invokeFold(const std::string &senderName) {
-    // todo implement
+    deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
+    Player &player = game.currentPlayer();
+
+    if (player.getCredit() <= 0 || player.isExchange()) { return; }
+
+    player.setFold(true);
+    player.setTurn(false);
+    DeckMaster::collectCardsFromPlayer(player, game.getCardsRef());
+
+    moveAccepted();
 }
 
 void GameService::invokeCheck(const std::string &senderName) {
-    // todo implement
+    deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
+    int bid = game.getBid();
+    Player &player = game.currentPlayer();
+    if (bid != 0 || player.getCredit() <= 0 || player.isExchange()) { return; }
+
+    player.setCheck(true);
+    player.setTurn(false);
+
+    moveAccepted();
 }
 
 void GameService::invokeCall(const std::string &senderName) {
-    // todo implement
+    deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
+    Player &player = game.currentPlayer();
+    int bid = game.getBid();
+    if (player.getCredit() <= bid || bid == 0 || player.isExchange()) { return; }
+
+    player.setTurn(false);
+    player.removeCredit(player.getDiff());
+    game.addToBank(player.getDiff());
+    player.setDiff(0);
+
+    moveAccepted();
 }
 
 void GameService::invokeAll(const std::string &senderName) {
-    // todo implement
+    deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
+    Player &player = game.currentPlayer();
+    int bid = game.getBid();
+    if (player.getCredit() > bid || bid == 0 || player.isExchange()) { return; }
+
+    player.setTurn(false);
+    game.addToBank(player.getCredit());
+    player.setCredit(0);
+    player.setDiff(0);
+    game.setAllIn(true);
+
+    moveAccepted();
 }
 
 void GameService::invokeCya(const std::string &senderName) {
-    // todo implement
+    deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
+    Player &player = game.currentPlayer();
+    if (player.getCredit() >= 0 || player.isExchange()) { return; }
+
+    DeckMaster::collectCardsFromPlayer(player, game.getCardsRef());
+    moveAccepted();
 }
 
 void GameService::invokeBet(const std::string &senderName, int value) {
-    // todo implement
+    deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
+    Player &player = game.currentPlayer();
+    int bid = game.getBid();
+    int credit = player.getCredit();
+    if (bid != 0 || credit <= 2 || game.isAllIn() || player.isExchange()) { return; }
+
+    if (value <= 2) { return serverGameController->sendToClient(MessagePrinter::printBetTooLowMessage(3), senderName); }
+    if (value > credit) {
+        return serverGameController->sendToClient(MessagePrinter::printBetTooHighMessage(), senderName);
+    }
+
+    game.setBid(value);
+    game.addToBank(value);
+    player.removeCredit(value);
+    player.setBet(true);
+    player.setTurn(false);
+
+    std::for_each(
+            game.getPlayingPlayersRef().begin(), game.getPlayingPlayersRef().end(),
+            [&value](Player &player) {
+                if (player.isFold()) { return; }
+                player.addToDiff(value);
+                player.setCheck(false);
+            }
+    );
+
+    moveAccepted();
 }
 
 void GameService::invokeRaise(const std::string &senderName, int value) {
-    // todo implement
+    deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
+    Player &player = game.currentPlayer();
+    int bid = game.getBid();
+    int credit = player.getCredit();
+
+    if (bid == 0 || credit <= 2 * bid || game.isAllIn() || player.isExchange()) { return; }
+
+    if (value <= 2 * bid) {
+        return serverGameController->sendToClient(MessagePrinter::printRaiseTooLowMessage(2 * bid), senderName);
+    }
+    if (value > credit) {
+        return serverGameController->sendToClient(MessagePrinter::printRaiseTooHighMessage(), senderName);
+    }
+
+    game.addToBank(value);
+    player.removeCredit(value);
+    player.setRaise(true);
+    player.setTurn(false);
+
+    std::for_each(
+            game.getPlayingPlayersRef().begin(), game.getPlayingPlayersRef().end(),
+            [&value, &bid](Player &player) {
+                if (player.isFold()) { return; }
+                player.addToDiff(value - bid);
+                player.setCheck(false);
+                player.setBet(false);
+                player.setRaise(false);
+            }
+    );
+
+    game.setBid(value);
+    moveAccepted();
 }
 
 void GameService::invokeExchange(const std::string &senderName, const std::vector<int> &values) {
-    // todo implement
+    Player &player = game.currentPlayer();
+    if (!player.isExchange()) { return; }
+
+    DeckMaster::collectPlayerCards(game.currentPlayer(), game.getCardsRef(), values);
+    player.setExchange(false);
+    updateQueue();
+    serverGameController->sendToClient(MessagePrinter::printExchangeAccepted(), senderName);
+
+    if (!player.isExchange()) {
+        DeckMaster::dealTheCards(game.getPlayingPlayersRef(), game.getCardsRef());
+        game.adjustPart();
+        game.setBid(0);
+        deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
+
+        serverGameController->broadcastMessage(MessagePrinter::printExchangeFinishedMessage());
+        sendInfoToAllPlayingPlayers();
+    }
 }
 
-void GameService::moveAccepted(){
+void GameService::moveAccepted() {
     updateQueue();
     updateIfFirstPlayerReadyForExchange();
     updateIfSecondPartFinished();
 }
 
-void GameService::proceedExchange(){
-    // todo implement
-}
+void GameService::makeWinners() {
+    int maxPoints = 0;
+    int maxType = 0;
+    std::vector<Player> &playingPlayers = game.getPlayingPlayersRef();
+    std::vector<Player *> &winners = game.getWinnersRef();
 
-void GameService::winnersCheck(){
-    // todo implement finish round / game if needed
+    for (auto &player: playingPlayers) {
+        if (!player.isFold()) { continue; }
+
+        if (player.getPoints() > maxPoints) {
+            maxPoints = player.getPoints();
+            maxType = player.getHandType();
+            winners.clear();
+            winners.push_back(&player);
+        } else if (player.getPoints() == maxPoints && player.getHandType() > maxType) {
+            maxType = player.getHandType();
+            winners.clear();
+            winners.push_back(&player);
+        } else if (player.getPoints() == maxPoints && player.getHandType() == maxType) {
+            winners.push_back(&player);
+        }
+    }
 }
 
 void GameService::updateQueue() {
-// todo implement
+    Player &player = game.currentPlayer();
+    game.removeFirstFromPlayingPlayers();
+    game.setLastPlayer(player);
+    if (player.getCredit() >= 0) { game.addToPlayingPlayers(player); }
+
+    std::vector<Player> &playingPlayers = game.getPlayingPlayersRef();
+    while (playingPlayers.front().isFold()) {
+        playingPlayers.push_back(playingPlayers.front());
+        playingPlayers.erase(playingPlayers.begin());
+    }
+    game.setCurrent(playingPlayers.front());
+    game.currentPlayer().setTurn(true);
+    playingPlayers.size() == 1 ? game.setNext(playingPlayers.front()) : game.setNext(playingPlayers[1]);
 }
 
 void GameService::updateIfFirstPlayerReadyForExchange() {
-// todo implement
+    Player &player = game.currentPlayer();
+    if (!(player.getBet() || player.getRaise() || player.getCheck()) || game.getPart() % 2 != 1) { return; }
+
+    std::vector<Player> &playingPlayers = game.getPlayingPlayersRef();
+    std::for_each(
+            playingPlayers.begin(), playingPlayers.end(),
+            [](Player &player) {
+                if (player.isFold()) { return; }
+                player.setCheck(false);
+                player.setBet(false);
+                player.setRaise(false);
+                player.setExchange(true);
+            }
+    );
 }
 
 void GameService::updateIfSecondPartFinished() {
-// todo implement
+    Player &player = game.currentPlayer();
+
+    if (!(player.getBet() || player.getRaise() || player.getCheck() || game.isAllIn())
+        || game.getPart() % 2 != 0) {
+        return;
+    }
+
+    std::vector<Player> &playingPlayers = game.getPlayingPlayersRef();
+    std::for_each(
+            playingPlayers.begin(), playingPlayers.end(),
+            [](Player &player) {
+                if (player.isFold()) { return; }
+                player.setCheck(false);
+                player.setBet(false);
+                player.setRaise(false);
+            }
+    );
+    makeWinners();
+    finishGameOrRound();
+}
+
+void GameService::finishGameOrRound() {
+    // todo implement
+    int a = 2;
 }
 
 std::string GameService::toString() const {
     return "Game{\n" +
-            MessagePrinter::addIndentation(game.toString(), "\t") +
+           MessagePrinter::addIndentation(game.toString(), "\t") +
            "\n}";
-}
-
-void GameService::notStarted(const std::string &senderName) {
-    serverGameController->sendToClient(MessagePrinter::gameNotStartedMessage(), senderName);
 }

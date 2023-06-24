@@ -11,7 +11,7 @@
 class ExchangeCommand : public ClientCommand {
 
 private:
-    void execute() override;
+    void exactExecute() override;
 
     public:
     explicit ExchangeCommand(

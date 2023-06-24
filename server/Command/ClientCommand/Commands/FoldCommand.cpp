@@ -12,6 +12,6 @@ FoldCommand::FoldCommand(
 
 }
 
-void FoldCommand::execute() {
-
+void FoldCommand::exactExecute() {
+    gameService->invokeFold(parsedMessage.senderName);
 }

@@ -13,7 +13,7 @@ ClientInfoCommand::ClientInfoCommand(
     playerName = parsedMessage.senderName;
     playerInfo = gameService->isGameStarted()
                  ? gameService->playingPlayerInfo(playerName)
-                 : MessagePrinter::gameNotStartedMessage();
+                 : gameNotStartedMessage();
 }
 
 void ClientInfoCommand::execute() {

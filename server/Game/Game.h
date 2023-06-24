@@ -42,6 +42,10 @@ public:
     void removePlayer(const std::string &playerName);
     void addToBank(int toAdd);
     void resetCards(std::vector<Card> cardsToSet);
+    std::string toString() const;
+    void removeFirstFromPlayingPlayers();
+    void addToPlayingPlayers(Player &player);
+    void adjustPart();
 
     std::vector<Player> &getPlayersRef();
     std::vector<Player> getPlayersCopy();
@@ -58,10 +62,12 @@ public:
     int getBankValue() const;
     int getNumOfPlayingPlayers();
     int getNumOfPlayers();
+    int getPart() const;
+    int getBid() const;
     bool isStarted() const;
     bool isInLobby(const std::string &playerName);
+    bool isAllIn() const;
 
-    std::string toString() const;
     void setStarted(bool toSet);
     void setFirstPart();
     void setPlayingPlayers(std::vector<Player> players);
@@ -71,6 +77,8 @@ public:
     void setBank(int toSet);
     void resetWinners();
     void setLast(Player *player);
+    void setLastPlayer(Player &player);
+    void setAllIn(bool toSet);
 };
 
 

@@ -9,9 +9,8 @@ AllCommand::AllCommand(
         const ParsedMessage &parsedMessage,
         GameServiceCommandController *gameService
 ) : ClientCommand(server, parsedMessage, gameService) {
-
 }
 
-void AllCommand::execute() {
-
+void AllCommand::exactExecute() {
+    gameService->invokeAll(parsedMessage.senderName);
 }

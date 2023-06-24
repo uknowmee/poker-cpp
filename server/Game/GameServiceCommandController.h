@@ -9,6 +9,9 @@ class GameServiceCommandController {
 public:
     virtual std::string playingPlayerInfo(const std::string &senderName) = 0;
     virtual bool isGameStarted() = 0;
+    virtual bool isPlayerTurn(const std::string &senderName) = 0;
+    virtual int numOfPlayers() = 0;
+    virtual std::string currentPlayerName() = 0;
 
     virtual void invokeFold(const std::string &senderName) = 0;
     virtual void invokeCheck(const std::string &senderName) = 0;

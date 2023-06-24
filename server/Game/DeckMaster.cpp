@@ -61,12 +61,13 @@ void DeckMaster::collectCardsFromPlayer(Player &player, std::vector<Card> &cards
     player.playerCardsRef().clear();
 }
 
-void DeckMaster::collectPlayerCards(Player &player, std::vector<Card> &cards, std::vector<int> &cardsToCollect) {
+void DeckMaster::collectPlayerCards(Player &player, std::vector<Card> &cards, std::vector<int> cardsToCollect) {
     std::vector<Card> &playerCards = player.playerCardsRef();
 
     for (int i : cardsToCollect) {
         cards.push_back(playerCards[i]);
     }
+
     std::sort(cardsToCollect.begin(), cardsToCollect.end(), std::greater<>());
     for (int i : cardsToCollect) {
         playerCards.erase(playerCards.begin() + i);

@@ -21,6 +21,7 @@ bool Player::isKicked() const {
 
 std::string Player::toString() const {
     std::string result = "Player: " + playerName + "\n";
+    result += (turn ? "Turn: true\n" : "Turn: false\n");
     result += "Credit: " + std::to_string(credit) + "\n";
     result += "Points: " + std::to_string(points) + " - " + CardMapper::pointsMap[points] + "\n";
     result += "Type: " + CardMapper::rankMap[type] + "\n";
@@ -66,4 +67,72 @@ void Player::setPoints(int pointsToSet) {
 
 void Player::setType(Rank rank) {
     type = rank;
+}
+
+bool Player::isExchange() const {
+    return exchange;
+}
+
+void Player::setRaise(bool toSet) {
+    raise = toSet;
+}
+
+void Player::setBet(bool toSet) {
+    bet = toSet;
+}
+
+void Player::setCheck(bool toSet) {
+    check = toSet;
+}
+
+bool Player::isFold() const {
+    return fold;
+}
+
+bool Player::getBet() const {
+    return bet;
+}
+
+bool Player::getRaise() const {
+    return raise;
+}
+
+bool Player::getCheck() const {
+    return check;
+}
+
+void Player::setExchange(bool toSet) {
+    exchange = toSet;
+}
+
+int Player::getCredit() const {
+    return credit;
+}
+
+int Player::getPoints() const {
+    return points;
+}
+
+int Player::getHandType() {
+    return type;
+}
+
+void Player::addToDiff(int toAdd) {
+    diff += toAdd;
+}
+
+void Player::setDiff(int toSet) {
+    diff = toSet;
+}
+
+void Player::setCredit(int toSet) {
+    credit = toSet;
+}
+
+int Player::getDiff() const {
+    return diff;
+}
+
+void Player::setFold(bool toSet) {
+    fold = toSet;
 }

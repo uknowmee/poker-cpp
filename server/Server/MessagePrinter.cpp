@@ -37,7 +37,7 @@ std::string MessagePrinter::printAddPlayerMessage(const std::string &playerName)
     return message;
 }
 
-std::string MessagePrinter::printGameEndedDueToDisconnectionMessage(const std::string& playerName) {
+std::string MessagePrinter::printGameEndedDueToDisconnectionMessage(const std::string &playerName) {
     std::string message = "Game has ended due to " + playerName + " disconnection";
     std::cout << message << std::endl;
     return message;
@@ -92,7 +92,7 @@ commands:
 )";
 }
 
-std::string MessagePrinter::addIndentation(const std::string& input, const std::string& indent) {
+std::string MessagePrinter::addIndentation(const std::string &input, const std::string &indent) {
     std::stringstream result = std::stringstream();
     std::stringstream ss(input);
     std::string line;
@@ -107,22 +107,61 @@ std::string MessagePrinter::addIndentation(const std::string& input, const std::
     return result.str();
 }
 
-std::string MessagePrinter::gameAlreadyStartedMessage() {
-    return "Game has already started";
+std::string MessagePrinter::notYourTurnMessage(const std::string &playerName, const std::string &currentPlayerName) {
+    return "It's not your turn " + playerName + "!" + "\n" + "Wait for " + currentPlayerName + " to finish his turn";
 }
 
-std::string MessagePrinter::notYourTurnMessage(const std::string& playerName) {
-    return "It's not your turn " + playerName + "!";
+std::string MessagePrinter::playerInfoMessage(const std::string &playerInfo) {
+    return "Player info:\n" + addIndentation(playerInfo, "\t");
 }
 
-std::string MessagePrinter::playerInfoMessage(const std::string& playerInfo) {
-    return "Player info:\n" + addIndentation(playerInfo, "\t") ;
-}
-
-std::string MessagePrinter::gameNotStartedMessage() {
-    return "Game has not started yet";
+std::string MessagePrinter::gameNotStartedMessage(const int &numOfPlayers) {
+    return "Game has not started yet. There are currently " +
+           std::to_string(numOfPlayers) +
+           (numOfPlayers == 1 ? " player" : " players") +
+           " in the lobby.";
 }
 
 std::string MessagePrinter::invalidServerCommand() {
     return "Invalid server command";
+}
+
+std::string MessagePrinter::yourTurnMessage(const std::string& currentPlayerName) {
+    return "It's your turn " + currentPlayerName + "!";
+}
+
+std::string MessagePrinter::printBetTooLowMessage(int minimumBet) {
+    std::string message = "Bet is too low! Minimum bet is " + std::to_string(minimumBet);
+    std::cout << message << std::endl;
+    return message;
+}
+
+std::string MessagePrinter::printBetTooHighMessage() {
+    std::string message = "Bet is too high! You don't have enough money";
+    std::cout << message << std::endl;
+    return message;
+}
+
+std::string MessagePrinter::printRaiseTooLowMessage(int minimumRaise) {
+    std::string message = "Raise is too low! Minimum raise is " + std::to_string(minimumRaise);
+    std::cout << message << std::endl;
+    return message;
+}
+
+std::string MessagePrinter::printRaiseTooHighMessage() {
+    std::string message = "Raise is too high! You don't have enough money";
+    std::cout << message << std::endl;
+    return message;
+}
+
+std::string MessagePrinter::printExchangeAccepted() {
+    std::string message = "Exchange accepted!";
+    std::cout << message << std::endl;
+    return message;
+}
+
+std::string MessagePrinter::printExchangeFinishedMessage() {
+    std::string message = "Exchange finished!";
+    std::cout << message << std::endl;
+    return message;
 }

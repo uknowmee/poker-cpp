@@ -25,24 +25,26 @@ private:
 
     explicit GameService(int maxNumOfPlayers, ServerGameController *serverGameController);
     void startGame();
-    void gameResetBetweenRounds();
-    void resetGame(const std::string& playerName);
-    void removePlayerIfNotStarted(const std::string &playerName);
-    static void adjustWinnersBalance(std::vector<Player *> &players, int value);
+    void sendInfoToAllPlayingPlayers();
     static void removeCreditFromPlayers(std::vector<Player> &players);
-    bool isSenderNotCurrent(const std::string &senderName);
-    bool playerIsNotKicked(const std::string &playerName);
-    void notCurrent(const std::string &senderName);
-    void notStarted(const std::string &senderName);
-    void winnersCheck();
+    void gameResetBetweenRounds();
+    static void adjustWinnersBalance(std::vector<Player *> &players, int value);
+    void removePlayerIfNotStarted(const std::string &playerName);
+    void resetGame(const std::string& playerName);
     void moveAccepted();
-    void proceedExchange();
     void updateQueue();
     void updateIfFirstPlayerReadyForExchange();
     void updateIfSecondPartFinished();
+    void makeWinners();
+    void finishGameOrRound();
+    bool playerIsNotKicked(const std::string &playerName);
 
     //GameServiceCommandController
     std::string playingPlayerInfo(const std::string &senderName) override;
+    bool isPlayerTurn(const std::string &senderName) override;
+    int numOfPlayers() override;
+    std::string currentPlayerName() override;
+
     void invokeFold(const std::string &senderName) override;
     void invokeCheck(const std::string &senderName) override;
     void invokeCall(const std::string &senderName) override;

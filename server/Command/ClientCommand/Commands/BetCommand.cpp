@@ -9,9 +9,8 @@ BetCommand::BetCommand(
         const ParsedMessage &parsedMessage,
         GameServiceCommandController *gameService
 ) : ClientCommand(server, parsedMessage, gameService) {
-
 }
 
-void BetCommand::execute() {
-
+void BetCommand::exactExecute() {
+    gameService->invokeBet(parsedMessage.senderName, parsedMessage.value);
 }
