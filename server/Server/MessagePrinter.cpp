@@ -173,3 +173,9 @@ std::string MessagePrinter::whatHappenedMessage(const std::string& message, cons
 std::string MessagePrinter::moveNotAllowedMessage(const std::string& message) {
     return "Move not allowed: " + message;
 }
+
+std::string MessagePrinter::printExchangeStartedMessage() {
+    std::string message = "Exchange started!";
+    std::cout << message << std::endl;
+    return message;
+}

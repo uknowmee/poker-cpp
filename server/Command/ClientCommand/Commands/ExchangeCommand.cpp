@@ -12,6 +12,7 @@ ExchangeCommand::ExchangeCommand(
 
 }
 
-void ExchangeCommand::exactExecute() {
+bool ExchangeCommand::exactExecute() {
     gameService->invokeExchange(parsedMessage.senderName, parsedMessage.values);
+    return true;
 }

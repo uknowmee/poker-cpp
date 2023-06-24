@@ -203,8 +203,6 @@ ParsedMessage MessageIdentifier::tryMakeExchange(
         std::vector<std::string> messageVector,
         const std::string &senderName
 ) {
-    if (messageVector.size() <= 1) { return makeInvalid(message, senderName); }
-
     std::vector<int> cardsToExchange;
     for (int i = 1; i < messageVector.size(); i++) {
         if (!isNumber(messageVector[i])) { return makeInvalid(message, senderName); }

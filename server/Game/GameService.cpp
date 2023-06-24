@@ -304,6 +304,7 @@ void GameService::invokeExchange(const std::string &senderName, const std::vecto
     updateQueue();
     serverGameController->sendToClient(MessagePrinter::printExchangeAccepted(), senderName);
 
+    player = game.currentPlayer();
     if (!player.isExchange()) {
         DeckMaster::dealTheCards(game.getPlayingPlayersRef(), game.getCardsRef());
         game.adjustPart();
@@ -378,6 +379,8 @@ void GameService::updateIfFirstPlayerReadyForExchange() {
                 player.setExchange(true);
             }
     );
+
+    serverGameController->broadcastMessage(MessagePrinter::printExchangeStartedMessage());
 }
 
 void GameService::updateIfSecondPartFinished() {

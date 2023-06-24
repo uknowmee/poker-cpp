@@ -18,7 +18,6 @@ DeckMaster::DeckMaster() = default;
 
 void DeckMaster::dealTheCards(std::deque<Player> &players, std::vector<Card> &cards) {
     shuffleBeforeDealing(cards);
-    sortPlayingPlayersCards(players);
 
     for (int i = 0; i < 5; i++) {
         for (auto &player: players) {
@@ -65,12 +64,14 @@ void DeckMaster::collectPlayerCards(Player &player, std::vector<Card> &cards, st
     std::vector<Card> &playerCards = player.playerCardsRef();
 
     for (int i : cardsToCollect) {
-        cards.push_back(playerCards[i]);
+        Card card = playerCards[i];
+        cards.push_back(card);
     }
 
-    std::sort(cardsToCollect.begin(), cardsToCollect.end(), std::greater<>());
-    for (int i : cardsToCollect) {
-        playerCards.erase(playerCards.begin() + i);
+    for (int i = (int)playerCards.size() - 1; i >= 0; i--) {
+        if (std::find(cardsToCollect.begin(), cardsToCollect.end(), i) != cardsToCollect.end()) {
+            playerCards.erase(playerCards.begin() + i);
+        }
     }
 }
 

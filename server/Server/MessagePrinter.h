@@ -46,6 +46,8 @@ public:
     static std::string whatHappenedMessage(const std::string& message, const std::string& currentPlayer, const std::string& lastPlayer);
 
     static std::string moveNotAllowedMessage(const std::string& message);
+
+    static std::string printExchangeStartedMessage();
 };
 
 
