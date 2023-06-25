@@ -139,16 +139,27 @@ bool GameService::playerIsNotKicked(const std::string &playerName) {
 }
 
 //GameServiceCommandController
-std::string GameService::playingPlayerInfo(const std::string &playerName) {
-    return game.playingPlayer(playerName).toString();
+void GameService::finishRound() {
+    // todo info print
+    gameResetBetweenRounds();
+}
+
+void GameService::finishGame() {
+    // todo info print + disconnect
+    game = Game::createGame(game.getMaxNumOfPlayers());
+    deckMaster = DeckMaster::createDeckMaster();
 }
 
 bool GameService::isPlayerTurn(const std::string &senderName) {
     return game.currentPlayer().getName() == senderName;
 }
 
-int GameService::numOfPlayers() {
-    return game.getNumOfPlayers();
+DeckMaster *GameService::getDeckMaster() {
+    return &deckMaster;
+}
+
+Game *GameService::getGame() {
+    return &game;
 }
 
 std::string GameService::currentPlayerName() {
@@ -159,164 +170,17 @@ std::string GameService::lastPlayerName() {
     return game.lastPlayer().getName();
 }
 
-MoveInfo GameService::invokeFold(const std::string &senderName) {
-    deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
-    Player &player = game.currentPlayer();
-
-    if (player.getCredit() <= 0 || player.isExchange()) { return MoveInfo::NOT_ALLOWED; }
-
-    player.setFold(true);
-    player.setTurn(false);
-    DeckMaster::collectCardsFromPlayer(player, game.getCardsRef());
-
-    return moveAccepted();
+int GameService::numOfPlayers() {
+    return game.getNumOfPlayers();
 }
 
-MoveInfo GameService::invokeCheck(const std::string &senderName) {
-    deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
-    int bid = game.getBid();
-    Player &player = game.currentPlayer();
-    if (bid != 0 || player.getCredit() <= 0 || player.isExchange()) { return MoveInfo::NOT_ALLOWED; }
-
-    player.setCheck(true);
-    player.setTurn(false);
-
-    return moveAccepted();
-}
-
-MoveInfo GameService::invokeCall(const std::string &senderName) {
-    deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
-    Player &player = game.currentPlayer();
-    int bid = game.getBid();
-    if (player.getCredit() <= bid || bid == 0 || player.isExchange()) { return MoveInfo::NOT_ALLOWED; }
-
-    player.setTurn(false);
-    player.removeCredit(player.getDiff());
-    game.addToBank(player.getDiff());
-    player.setDiff(0);
-
-    return moveAccepted();
-}
-
-MoveInfo GameService::invokeAll(const std::string &senderName) {
-    deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
-    Player &player = game.currentPlayer();
-    int bid = game.getBid();
-    if (player.getCredit() > bid || bid == 0 || player.isExchange()) { return MoveInfo::NOT_ALLOWED; }
-
-    player.setTurn(false);
-    game.addToBank(player.getCredit());
-    player.setCredit(0);
-    player.setDiff(0);
-    game.setAllIn(true);
-
-    return moveAccepted();
-}
-
-MoveInfo GameService::invokeCya(const std::string &senderName) {
-    deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
-    Player &player = game.currentPlayer();
-    if (player.getCredit() >= 0 || player.isExchange()) { return MoveInfo::NOT_ALLOWED; }
-
-    DeckMaster::collectCardsFromPlayer(player, game.getCardsRef());
-
-    return moveAccepted();
-}
-
-MoveInfo GameService::invokeBet(const std::string &senderName, int value) {
-    deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
-    Player &player = game.currentPlayer();
-    int bid = game.getBid();
-    int credit = player.getCredit();
-    if (bid != 0 || credit <= 2 || game.isAllIn() || player.isExchange()) { return MoveInfo::NOT_ALLOWED; }
-
-    if (value <= 2) {
-        serverGameController->sendToClient(MessagePrinter::printBetTooLowMessage(3), senderName);
-        return MoveInfo::NOT_ALLOWED;
-    }
-    if (value > credit) {
-        serverGameController->sendToClient(MessagePrinter::printBetTooHighMessage(), senderName);
-        return MoveInfo::NOT_ALLOWED;
-    }
-
-    game.setBid(value);
-    game.addToBank(value);
-    player.removeCredit(value);
-    player.setBet(true);
-    player.setTurn(false);
-
-    std::for_each(
-            game.getPlayingPlayersRef().begin(), game.getPlayingPlayersRef().end(),
-            [&value](Player &player) {
-                if (player.isFold()) { return; }
-                player.addToDiff(value);
-                player.setCheck(false);
-            }
-    );
-
-    return moveAccepted();
-}
-
-MoveInfo GameService::invokeRaise(const std::string &senderName, int value) {
-    deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
-    Player &player = game.currentPlayer();
-    int bid = game.getBid();
-    int credit = player.getCredit();
-
-    if (bid == 0 || credit <= 2 * bid || game.isAllIn() || player.isExchange()) { return MoveInfo::NOT_ALLOWED; }
-
-    if (value <= 2 * bid) {
-        serverGameController->sendToClient(MessagePrinter::printRaiseTooLowMessage(2 * bid), senderName);
-        return MoveInfo::NOT_ALLOWED;
-    }
-    if (value > credit) {
-        serverGameController->sendToClient(MessagePrinter::printRaiseTooHighMessage(), senderName);
-        return MoveInfo::NOT_ALLOWED;
-    }
-
-    game.addToBank(value);
-    player.removeCredit(value);
-    player.setRaise(true);
-    player.setTurn(false);
-
-    std::for_each(
-            game.getPlayingPlayersRef().begin(), game.getPlayingPlayersRef().end(),
-            [&value, &bid](Player &player) {
-                if (player.isFold()) { return; }
-                player.addToDiff(value - bid);
-                player.setCheck(false);
-                player.setBet(false);
-                player.setRaise(false);
-            }
-    );
-
-    game.setBid(value);
-
-    return moveAccepted();
-}
-
-void GameService::invokeExchange(const std::string &senderName, const std::vector<int> &values) {
-    if (!game.currentPlayer().isExchange()) { return; }
-
-    game.currentPlayer().setExchange(false);
-    updateQueue();
-    DeckMaster::collectPlayerCards(game.lastPlayer(), game.getCardsRef(), values);
-    serverGameController->sendToClient(MessagePrinter::printExchangeAccepted(), senderName);
-
-    if (!game.currentPlayer().isExchange()) {
-        DeckMaster::dealTheCards(game.getPlayingPlayersRef(), game.getCardsRef());
-        game.adjustPart();
-        game.setBid(0);
-        deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
-
-        serverGameController->broadcastMessage(MessagePrinter::printExchangeFinishedMessage());
-        sendInfoToAllPlayingPlayers();
-    }
+std::string GameService::playingPlayerInfo(const std::string &playerName) {
+    return game.playingPlayer(playerName).toString();
 }
 
 MoveInfo GameService::moveAccepted() {
     updateQueue();
-    updateIfFirstPlayerReadyForExchange();
+    if (updateIfFirstPlayerReadyForExchange()) { return MoveInfo::EXCHANGE_STARTED; }
 
     if (updateIfSecondPartFinished()) {
         makeWinners();
@@ -324,30 +188,6 @@ MoveInfo GameService::moveAccepted() {
     }
 
     return MoveInfo::ACCEPTED;
-}
-
-void GameService::makeWinners() {
-    int maxPoints = 0;
-    int maxType = 0;
-    std::deque<Player> &playingPlayers = game.getPlayingPlayersRef();
-    std::vector<Player *> &winners = game.getWinnersRef();
-
-    for (auto &player: playingPlayers) {
-        if (!player.isFold()) { continue; }
-
-        if (player.getPoints() > maxPoints) {
-            maxPoints = player.getPoints();
-            maxType = player.getHandType();
-            winners.clear();
-            winners.push_back(&player);
-        } else if (player.getPoints() == maxPoints && player.getHandType() > maxType) {
-            maxType = player.getHandType();
-            winners.clear();
-            winners.push_back(&player);
-        } else if (player.getPoints() == maxPoints && player.getHandType() == maxType) {
-            winners.push_back(&player);
-        }
-    }
 }
 
 void GameService::updateQueue() {
@@ -367,9 +207,9 @@ void GameService::updateQueue() {
     playingPlayers.size() == 1 ? game.setNext(playingPlayers.front()) : game.setNext(playingPlayers[1]);
 }
 
-void GameService::updateIfFirstPlayerReadyForExchange() {
+bool GameService::updateIfFirstPlayerReadyForExchange() {
     Player &player = game.currentPlayer();
-    if (!(player.getBet() || player.getRaise() || player.getCheck()) || game.getPart() % 2 != 1) { return; }
+    if (!(player.getBet() || player.getRaise() || player.getCheck()) || game.getPart() % 2 != 1) { return false; }
 
     std::deque<Player> &playingPlayers = game.getPlayingPlayersRef();
     std::for_each(
@@ -383,7 +223,7 @@ void GameService::updateIfFirstPlayerReadyForExchange() {
             }
     );
 
-    serverGameController->broadcastMessage(MessagePrinter::printExchangeStartedMessage());
+    return true;
 }
 
 bool GameService::updateIfSecondPartFinished() {
@@ -408,9 +248,34 @@ bool GameService::updateIfSecondPartFinished() {
     return true;
 }
 
+void GameService::makeWinners() {
+    int maxPoints = 0;
+    int maxType = 0;
+    std::deque<Player> &playingPlayers = game.getPlayingPlayersRef();
+    std::vector<Player *> &winners = game.getWinnersRef();
+
+    for (auto &player: playingPlayers) {
+        if (player.isFold()) { continue; }
+
+        if (player.getPoints() > maxPoints) {
+            maxPoints = player.getPoints();
+            maxType = player.getHandType();
+            winners.clear();
+            winners.push_back(&player);
+        } else if (player.getPoints() == maxPoints && player.getHandType() > maxType) {
+            maxType = player.getHandType();
+            winners.clear();
+            winners.push_back(&player);
+        } else if (player.getPoints() == maxPoints && player.getHandType() == maxType) {
+            winners.push_back(&player);
+        }
+    }
+}
+
 MoveInfo GameService::eitherGameOrRoundFinished() {
-    // todo implement
-    int a = 2;
+    return game.getPlayingPlayers().size() == 1
+           ? MoveInfo::GAME_FINISHED
+           : MoveInfo::ROUND_FINISHED;
 }
 
 std::string GameService::toString() const {
@@ -418,3 +283,4 @@ std::string GameService::toString() const {
            MessagePrinter::addIndentation(game.toString(), "\t") +
            "\n}";
 }
+

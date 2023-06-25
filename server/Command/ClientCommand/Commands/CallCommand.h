@@ -7,11 +7,16 @@
 
 
 #include "../ClientCommand.h"
+#include "../../../Game/Game.h"
+#include "../../../Game/DeckMaster.h"
 
 class CallCommand : public ClientCommand{
 
 private:
-    bool exactExecute() override;
+    DeckMaster *deckMaster;
+    Game *game;
+
+    MoveInfo exactExecute() override;
 
 public:
     explicit CallCommand(

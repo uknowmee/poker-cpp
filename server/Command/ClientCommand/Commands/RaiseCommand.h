@@ -7,11 +7,20 @@
 
 
 #include "../ClientCommand.h"
+#include "../../../Game/Game.h"
+#include "../../../Game/DeckMaster.h"
 
 class RaiseCommand : public ClientCommand {
 
 private:
-    bool exactExecute() override;
+    DeckMaster *deckMaster;
+    Game *game;
+    std::string senderName;
+    int value;
+
+    MoveInfo exactExecute() override;
+    MoveInfo handleToLowRaise(int bid);
+    MoveInfo handleToHighRaise();
 
 public:
     explicit RaiseCommand(

@@ -19,10 +19,12 @@ void ClientCommand::execute() {
     if (!gameService->isPlayerTurn(parsedMessage.senderName)) { return sendNotYourTurnMessage(); }
 
     MoveInfo moveInfo = exactExecute();
+
     if (moveInfo == MoveInfo::ACCEPTED) { return sendToAllPlayersWhatHappened(); }
-    if (moveInfo == MoveInfo::NOT_ALLOWED) { return sendPlayerThatMoveNotAllowed(); }
-    if (moveInfo == MoveInfo::ROUND_FINISHED) { return gameService->finishRound(); }
-    if (moveInfo == MoveInfo::GAME_FINISHED) { return gameService->finishGame(); }
+    else if (moveInfo == MoveInfo::NOT_ALLOWED) { return sendPlayerThatMoveNotAllowed(); }
+    else if (moveInfo == MoveInfo::ROUND_FINISHED) { return gameService->finishRound(); }
+    else if (moveInfo == MoveInfo::GAME_FINISHED) { return gameService->finishGame(); }
+    else if (moveInfo == MoveInfo::EXCHANGE_STARTED) { return sendExchangeStartedMessage(); }
 }
 
 void ClientCommand::sendGameNotStartedMessage() {
@@ -52,4 +54,9 @@ void ClientCommand::sendToAllPlayersWhatHappened() {
 
 void ClientCommand::sendPlayerThatMoveNotAllowed() {
     server->sendToClient(MessagePrinter::moveNotAllowedMessage(parsedMessage.message), parsedMessage.senderName);
+}
+
+void ClientCommand::sendExchangeStartedMessage() {
+    sendToAllPlayersWhatHappened();
+    server->broadcastMessage(MessagePrinter::printExchangeStartedMessage());
 }

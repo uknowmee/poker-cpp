@@ -18,42 +18,36 @@
 class GameService : public GameServiceCommandController {
 
 private:
-    pthread_mutex_t gameStop{};
     Game game;
     DeckMaster deckMaster;
     ServerGameController *serverGameController;
 
     explicit GameService(int maxNumOfPlayers, ServerGameController *serverGameController);
     void startGame();
-    void sendInfoToAllPlayingPlayers();
     static void removeCreditFromPlayers(std::deque<Player> &players);
     void gameResetBetweenRounds();
     static void adjustWinnersBalance(std::vector<Player *> &players, int value);
     void removePlayerIfNotStarted(const std::string &playerName);
     void resetGame(const std::string& playerName);
-    MoveInfo moveAccepted();
-    void updateQueue();
-    void updateIfFirstPlayerReadyForExchange();
+    bool updateIfFirstPlayerReadyForExchange();
     bool updateIfSecondPartFinished();
     void makeWinners();
     MoveInfo eitherGameOrRoundFinished();
     bool playerIsNotKicked(const std::string &playerName);
 
     //GameServiceCommandController
-    std::string playingPlayerInfo(const std::string &senderName) override;
+    void sendInfoToAllPlayingPlayers() override;
+    void updateQueue() override;
+    MoveInfo moveAccepted() override;
+    void finishRound() override;
+    void finishGame() override;
     bool isPlayerTurn(const std::string &senderName) override;
-    int numOfPlayers() override;
+    DeckMaster *getDeckMaster() override;
+    Game *getGame() override;
     std::string currentPlayerName() override;
     std::string lastPlayerName() override;
-
-    MoveInfo invokeFold(const std::string &senderName) override;
-    MoveInfo invokeCheck(const std::string &senderName) override;
-    MoveInfo invokeCall(const std::string &senderName) override;
-    MoveInfo invokeAll(const std::string &senderName) override;
-    MoveInfo invokeCya(const std::string &senderName) override;
-    MoveInfo invokeBet(const std::string &senderName, int value) override;
-    MoveInfo invokeRaise(const std::string &senderName, int value) override;
-    void invokeExchange(const std::string &senderName, const std::vector<int> &values) override;
+    int numOfPlayers() override;
+    std::string playingPlayerInfo(const std::string &senderName) override;
 
 public:
     static GameService createGameService(ServerGameController *serverGameController, int maxNumOfPlayers);

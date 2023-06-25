@@ -11,7 +11,13 @@
 class ExchangeCommand : public ClientCommand {
 
 private:
+    DeckMaster *deckMaster;
+    Game *game;
+    std::string senderName;
+    std::vector<int> cardsToExchange;
+
     void execute() override;
+    void proceedExchange();
 
     public:
     explicit ExchangeCommand(

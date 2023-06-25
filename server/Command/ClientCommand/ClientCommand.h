@@ -27,12 +27,13 @@ protected:
     void sendGameNotStartedMessage();
     void sendNotYourTurnMessage();
     void sendToAllPlayersWhatHappened();
+    void sendPlayerThatMoveNotAllowed();
     std::string gameNotStartedMessage();
 
 private:
 
     std::string notYourTurnMessage();
-    void sendPlayerThatMoveNotAllowed();
+    void sendExchangeStartedMessage();
 };
 
 

@@ -7,13 +7,18 @@
 
 
 #include "../ClientCommand.h"
+#include "../../../Game/DeckMaster.h"
+#include "../../../Game/Game.h"
 
-class FoldCommand : public ClientCommand{
+class FoldCommand : public ClientCommand {
 
 private:
-    bool exactExecute() override;
+    DeckMaster *deckMaster;
+    Game *game;
 
-    public:
+    MoveInfo exactExecute() override;
+
+public:
     explicit FoldCommand(
             ServerGameController *server,
             const ParsedMessage &parsedMessage,

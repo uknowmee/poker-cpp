@@ -9,9 +9,20 @@ CallCommand::CallCommand(
         const ParsedMessage &parsedMessage,
         GameServiceCommandController *gameService
 ) : ClientCommand(server, parsedMessage, gameService) {
-
+    deckMaster = gameService->getDeckMaster();
+    game = gameService->getGame();
 }
 
-bool CallCommand::exactExecute() {
-    return gameService->invokeCall(parsedMessage.senderName);
+MoveInfo CallCommand::exactExecute() {
+    deckMaster->evaluatePlayingPlayersCards(game->getPlayingPlayersRef());
+    Player &player = game->currentPlayer();
+    int bid = game->getBid();
+    if (player.getCredit() <= bid || bid == 0 || player.isExchange()) { return MoveInfo::NOT_ALLOWED; }
+
+    player.setTurn(false);
+    player.removeCredit(player.getDiff());
+    game->addToBank(player.getDiff());
+    player.setDiff(0);
+
+    return gameService->moveAccepted();
 }

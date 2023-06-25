@@ -9,9 +9,18 @@ CheckCommand::CheckCommand(
         const ParsedMessage &parsedMessage,
         GameServiceCommandController *gameService
 ) : ClientCommand(server, parsedMessage, gameService) {
-
+    deckMaster = gameService->getDeckMaster();
+    game = gameService->getGame();
 }
 
-bool CheckCommand::exactExecute() {
-    return gameService->invokeCheck(parsedMessage.senderName);
+MoveInfo CheckCommand::exactExecute() {
+    deckMaster->evaluatePlayingPlayersCards(game->getPlayingPlayersRef());
+    int bid = game->getBid();
+    Player &player = game->currentPlayer();
+    if (bid != 0 || player.getCredit() <= 0 || player.isExchange()) { return MoveInfo::NOT_ALLOWED; }
+
+    player.setCheck(true);
+    player.setTurn(false);
+
+    return gameService->moveAccepted();
 }

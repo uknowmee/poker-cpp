@@ -7,11 +7,20 @@
 
 
 #include "../ClientCommand.h"
+#include "../../../Game/Game.h"
+#include "../../../Game/DeckMaster.h"
 
 class BetCommand : public ClientCommand {
 
 private:
-    bool exactExecute() override;
+    DeckMaster *deckMaster;
+    Game *game;
+    std::string senderName;
+    int value;
+
+    MoveInfo exactExecute() override;
+    MoveInfo handleToLowBet();
+    MoveInfo handleToHighBet();
 
 public:
     explicit BetCommand(
