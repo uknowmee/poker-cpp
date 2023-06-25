@@ -24,7 +24,7 @@ MoveInfo RaiseCommand::exactExecute() {
 
     if (bid == 0 || credit <= 2 * bid || game->isAllIn() || player.isExchange()) { return MoveInfo::NOT_ALLOWED; }
 
-    if (value <= 2 * bid) { return handleToLowRaise(bid); }
+    if (value < 2 * bid) { return handleToLowRaise(bid); }
     if (value > credit) { return handleToHighRaise(); }
 
     game->addToBank(value);
@@ -35,7 +35,7 @@ MoveInfo RaiseCommand::exactExecute() {
     std::for_each(
             game->getPlayingPlayersRef().begin(), game->getPlayingPlayersRef().end(),
             [this, &bid](Player &player) {
-                if (player.isFold()) { return; }
+                if (player.isFold() || player.getName() == game->currentPlayer().getName()) { return; }
                 player.addToDiff(value - bid);
                 player.setCheck(false);
                 player.setBet(false);

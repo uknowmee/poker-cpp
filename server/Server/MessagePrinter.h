@@ -27,6 +27,9 @@ public:
     static std::string printRaiseTooHighMessage();
     static std::string printExchangeAccepted();
     static std::string printExchangeFinishedMessage();
+    static std::string printExchangeStartedMessage();
+    static std::string printGameEndMessage(const std::string& winnerName);
+    static std::string printRoundEndMessage(const std::string& winnersNames, int bankValue);
     static std::string gameStartMessage();
     static std::string welcomeMessage(const std::string &playerName);
     static std::string numberOfConnectedPlayersInfoMessage(int numOfPlayers);
@@ -44,10 +47,7 @@ public:
     static void printParsedMessage(const ParsedMessage& parsedMessage);
     static std::string yourTurnMessage(const std::string& currentPlayerName);
     static std::string whatHappenedMessage(const std::string& message, const std::string& currentPlayer, const std::string& lastPlayer);
-
     static std::string moveNotAllowedMessage(const std::string& message);
-
-    static std::string printExchangeStartedMessage();
 };
 
 

@@ -34,7 +34,7 @@ MoveInfo BetCommand::exactExecute() {
     std::for_each(
             game->getPlayingPlayersRef().begin(), game->getPlayingPlayersRef().end(),
             [this](Player &player) {
-                if (player.isFold()) { return; }
+                if (player.isFold() || player.getName() == game->currentPlayer().getName()) { return; }
                 player.addToDiff(value);
                 player.setCheck(false);
             }

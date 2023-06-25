@@ -13,6 +13,7 @@ class GameServiceCommandController {
 public:
     virtual void removeCreditFromPlayerAndPlayingPlayer(Player &player, int value) = 0;
     virtual MoveInfo moveAccepted() = 0;
+    virtual MoveInfo exchangeMoveAcceptedInAllInCase() = 0;
     virtual void updateQueue() = 0;
     virtual void finishRound() = 0;
     virtual void finishGame() = 0;

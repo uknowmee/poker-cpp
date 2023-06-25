@@ -215,4 +215,3 @@ void ConnectionManager::disconnectClient(const std::string& clientName) {
 
     pthread_mutex_unlock(&mutex);
 }
-

@@ -4,6 +4,7 @@
 
 #include <numeric>
 #include "Game.h"
+#include "../Server/MessagePrinter.h"
 
 Game Game::createGame(int maxNumOfPlayers) {
     return Game(maxNumOfPlayers);
@@ -151,7 +152,7 @@ std::string Game::toString() const {
     return "maxNumOfPlayers=" + std::to_string(maxNumOfPlayers) +
            cardList +
            (!players.empty() ? "\nplayers=" + getPlayersNames() : "") +
-           (!playingPlayers.empty() ? "\nplayingPlayers=\n" + getPlayingPlayerNamesAndCards() : "") +
+           (!playingPlayers.empty() ? "\nplayingPlayers=\n" + getPlayingPlayerInfo() : "") +
            (!winners.empty() ? "\nwinners=" + getWinnersNames() : "") +
            (last != nullptr ? "\nlast=" + last->getName() : "") +
            (current != nullptr ? "\ncurrent=" + current->getName() : "") +
@@ -179,18 +180,12 @@ std::string Game::getPlayersNames() const {
     return playersNames;
 }
 
-std::string Game::getPlayingPlayerNamesAndCards() const {
-    std::string playingPlayersNamesAndCards;
-    for (Player player: playingPlayers) {
-        std::vector<Card> playerCards = player.cards();
-        playingPlayersNamesAndCards += "\t" + player.getName() + ", cards=";
-        for (int i = 0; i < playerCards.size(); ++i) {
-            playingPlayersNamesAndCards += playerCards[i].toString();
-            if (i != playerCards.size() - 1) { playingPlayersNamesAndCards += ", "; }
-        }
-        if (player.getName() != playingPlayers.back().getName()) { playingPlayersNamesAndCards += "\n"; }
+std::string Game::getPlayingPlayerInfo() const {
+    std::string playingPlayersInfo;
+    for (const Player& player: playingPlayers) {
+        playingPlayersInfo += player.toString() + "\n\n";
     }
-    return playingPlayersNamesAndCards;
+    return  MessagePrinter::addIndentation(playingPlayersInfo, "\t");
 }
 
 bool Game::isInLobby(const std::string &playerName) {

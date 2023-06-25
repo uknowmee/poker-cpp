@@ -118,16 +118,20 @@ bool Evaluator::isFlush() {
 
 bool Evaluator::isStraight() {
     std::vector<int> ranks;
-    for (const auto &card: cards) {
-        ranks.push_back(card.getRank());
-    }
+    std::vector<int> smallStraight = {DZIEWIATKA, DZIESIATKA, WALET, DAMA, KROL};
+    std::vector<int> bigStraight = {DZIESIATKA, WALET, DAMA, KROL, AS};
+
+    std::transform(
+            cards.begin(), cards.end(), std::back_inserter(ranks),
+            [](const auto &card) {
+                return card.getRank();
+            }
+    );
 
     std::sort(ranks.begin(), ranks.end());
 
-    if (((color == 2 || color == 3 || color == 4) && diffRanks == 5 && maxOfOneRank == 1) &&
-        ((ranks == std::vector<int>{DZIEWIATKA, DZIESIATKA, WALET, DAMA, KROL}) ||
-         (ranks == std::vector<int>{DZIESIATKA, WALET, DAMA, KROL, AS})
-        )) {
+    if ((color >= 2 && color <= 4) && diffRanks == 5 && maxOfOneRank == 1 &&
+        (ranks == bigStraight || ranks == smallStraight)) {
         type = cards.back().getRank();
         return true;
     }

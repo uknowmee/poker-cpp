@@ -34,7 +34,7 @@ private:
     explicit Game(int maxNumOfPlayers);
     std::string getWinnersNames() const;
     std::string getPlayersNames() const;
-    std::string getPlayingPlayerNamesAndCards() const;
+    std::string getPlayingPlayerInfo() const;
 
 public:
     Game();
@@ -81,7 +81,6 @@ public:
     void setLast(Player *player);
     void setLastPlayer(Player &player);
     void setAllIn(bool toSet);
-
     void setPlayerKicked(const std::string& playerName);
 };
 

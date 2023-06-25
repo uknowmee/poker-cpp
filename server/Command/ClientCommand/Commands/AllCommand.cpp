@@ -17,7 +17,7 @@ MoveInfo AllCommand::exactExecute() {
     deckMaster->evaluatePlayingPlayersCards(game->getPlayingPlayersRef());
     Player &player = game->currentPlayer();
     int bid = game->getBid();
-    if (player.getCredit() > bid || bid == 0 || player.isExchange()) { return MoveInfo::NOT_ALLOWED; }
+    if (player.getCredit() > bid || bid == 0 || player.isExchange() || player.getCredit() <= 0) { return MoveInfo::NOT_ALLOWED; }
 
     player.setTurn(false);
     game->addToBank(player.getCredit());

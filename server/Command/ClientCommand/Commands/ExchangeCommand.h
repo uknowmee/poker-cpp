@@ -18,6 +18,7 @@ private:
 
     void execute() override;
     void proceedExchange();
+    void checkAllInCase();
 
     public:
     explicit ExchangeCommand(

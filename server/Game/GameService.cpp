@@ -52,11 +52,12 @@ void GameService::sendInfoToAllPlayingPlayers() {
             game.currentPlayer().getName()
     );
 
+    usleep(50000);
     std::deque<Player> playingPlayers = game.getPlayingPlayers();
     std::for_each(
             playingPlayers.begin(), playingPlayers.end(),
             [&](Player &player) {
-                std::string info = player.toString();
+                std::string info = "Bank: " + std::to_string(game.getBankValue()) + "\n" + player.toString();
                 serverGameController->sendToClient(MessagePrinter::playerInfoMessage(info), player.getName());
             }
     );
@@ -82,6 +83,7 @@ void GameService::gameResetBetweenRounds() {
     DeckMaster::dealTheCards(game.getPlayingPlayersRef(), game.getCardsRef());
     game.addToBank(game.getNumOfPlayingPlayers() * 2);
     removeCreditFromPlayers(game.getPlayingPlayersRef());
+    removeDiffFromPlayers(game.getPlayingPlayersRef());
     game.setLast(nullptr);
     game.setCurrent(game.firstPlayingPlayer());
     game.setNext(game.secondPlayingPlayer());
@@ -146,14 +148,26 @@ bool GameService::playerIsNotKicked(const std::string &playerName) {
 
 //GameServiceCommandController
 void GameService::finishRound() {
-    // todo info print
+    std::string winnersNames;
+
+    std::for_each(
+            game.getWinnersRef().begin(), game.getWinnersRef().end(),
+            [&winnersNames](Player *player) {
+                winnersNames += player->getName();
+            }
+    );
+
+    serverGameController->broadcastMessage(MessagePrinter::printRoundEndMessage(winnersNames, game.getBankValue()));
     gameResetBetweenRounds();
+    sendInfoToAllPlayingPlayers();
 }
 
 void GameService::finishGame() {
-    // todo info print + disconnect
+    std::string winnerName = game.currentPlayer().getName();
+    serverGameController->sendToClient(MessagePrinter::printGameEndMessage(winnerName), winnerName);
     game = Game::createGame(game.getMaxNumOfPlayers());
     deckMaster = DeckMaster::createDeckMaster();
+    serverGameController->disconnectClient(winnerName);
 }
 
 bool GameService::isPlayerTurn(const std::string &senderName) {
@@ -181,7 +195,7 @@ int GameService::numOfPlayers() {
 }
 
 std::string GameService::playingPlayerInfo(const std::string &playerName) {
-    return game.playingPlayer(playerName).toString();
+    return "Bank: " + std::to_string(game.getBankValue()) + "\n" + game.playingPlayer(playerName).toString();
 }
 
 MoveInfo GameService::moveAccepted() {
@@ -194,6 +208,27 @@ MoveInfo GameService::moveAccepted() {
     }
 
     return MoveInfo::ACCEPTED;
+}
+
+MoveInfo GameService::exchangeMoveAcceptedInAllInCase() {
+
+    std::deque<Player> &playingPlayers = game.getPlayingPlayersRef();
+    std::for_each(
+            playingPlayers.begin(), playingPlayers.end(),
+            [](Player &player) {
+                player.setCheck(false);
+                player.setBet(false);
+                player.setRaise(false);
+                player.setExchange(false);
+                player.setFold(false);
+            }
+    );
+
+    game.setAllIn(false);
+    game.adjustPart();
+
+    makeWinners();
+    return eitherGameOrRoundFinished();
 }
 
 void GameService::updateQueue() {
@@ -239,22 +274,22 @@ bool GameService::updateIfFirstPlayerReadyForExchange() {
 bool GameService::updateIfSecondPartFinished() {
     Player &player = game.currentPlayer();
 
-    if (!(player.getBet() || player.getRaise() || player.getCheck() || game.isAllIn())
-        || game.getPart() % 2 != 0) {
-        return false;
-    }
+    if (!(player.getBet() || player.getRaise() || player.getCheck()) || game.getPart() % 2 != 0) { return false; }
 
     std::deque<Player> &playingPlayers = game.getPlayingPlayersRef();
     std::for_each(
             playingPlayers.begin(), playingPlayers.end(),
             [](Player &player) {
-                if (player.isFold()) { return; }
                 player.setCheck(false);
                 player.setBet(false);
                 player.setRaise(false);
+                player.setExchange(false);
+                player.setFold(false);
             }
     );
 
+    game.setAllIn(false);
+    game.adjustPart();
     return true;
 }
 
@@ -294,3 +329,11 @@ std::string GameService::toString() const {
            "\n}";
 }
 
+void GameService::removeDiffFromPlayers(std::deque<Player> &playingPlayers) {
+    std::for_each(
+            playingPlayers.begin(), playingPlayers.end(),
+            [](Player &player) {
+                player.setDiff(0);
+            }
+    );
+}
