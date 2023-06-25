@@ -18,6 +18,7 @@ MoveInfo CyaCommand::exactExecute() {
     Player &player = game->currentPlayer();
     if (player.getCredit() >= 0 || player.isExchange()) { return MoveInfo::NOT_ALLOWED; }
 
+    // todo fix this
     DeckMaster::collectCardsFromPlayer(player, game->getCardsRef());
 
     return gameService->moveAccepted();

@@ -61,8 +61,8 @@ public:
     void setExchange(bool toSet);
     void setTurn(bool toSet);
     void setDiff(int toSet);
-    void setCredit(int toSet);
     void setFold(bool toSet);
+    void setKicked(bool toSet);
 };
 
 

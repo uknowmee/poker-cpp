@@ -27,7 +27,7 @@ MoveInfo BetCommand::exactExecute() {
 
     game->setBid(value);
     game->addToBank(value);
-    player.removeCredit(value);
+    gameService->removeCreditFromPlayerAndPlayingPlayer(player, value);
     player.setBet(true);
     player.setTurn(false);
 

@@ -24,9 +24,9 @@ private:
 
     explicit GameService(int maxNumOfPlayers, ServerGameController *serverGameController);
     void startGame();
-    static void removeCreditFromPlayers(std::deque<Player> &players);
+    void removeCreditFromPlayers(std::deque<Player> &playingPlayers);
     void gameResetBetweenRounds();
-    static void adjustWinnersBalance(std::vector<Player *> &players, int value);
+    void adjustWinnersBalance(std::vector<Player *> &winnersInPlayingPlayers, int value);
     void removePlayerIfNotStarted(const std::string &playerName);
     void resetGame(const std::string& playerName);
     bool updateIfFirstPlayerReadyForExchange();
@@ -36,6 +36,7 @@ private:
     bool playerIsNotKicked(const std::string &playerName);
 
     //GameServiceCommandController
+    void removeCreditFromPlayerAndPlayingPlayer(Player &player, int value) override;
     void sendInfoToAllPlayingPlayers() override;
     void updateQueue() override;
     MoveInfo moveAccepted() override;

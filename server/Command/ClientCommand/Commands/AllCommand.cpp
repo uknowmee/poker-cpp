@@ -21,7 +21,7 @@ MoveInfo AllCommand::exactExecute() {
 
     player.setTurn(false);
     game->addToBank(player.getCredit());
-    player.setCredit(0);
+    gameService->removeCreditFromPlayerAndPlayingPlayer(player, player.getCredit());
     player.setDiff(0);
     game->setAllIn(true);
 

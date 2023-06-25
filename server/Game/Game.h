@@ -49,6 +49,7 @@ public:
     void adjustPart();
 
     std::vector<Player> getPlayersCopy();
+    Player &getPlayer(const std::string &playerName);
     std::deque<Player> &getPlayingPlayersRef();
     std::deque<Player> getPlayingPlayers();
     std::vector<Player *> &getWinnersRef();
@@ -80,6 +81,8 @@ public:
     void setLast(Player *player);
     void setLastPlayer(Player &player);
     void setAllIn(bool toSet);
+
+    void setPlayerKicked(const std::string& playerName);
 };
 
 

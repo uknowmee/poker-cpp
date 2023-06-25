@@ -28,7 +28,7 @@ MoveInfo RaiseCommand::exactExecute() {
     if (value > credit) { return handleToHighRaise(); }
 
     game->addToBank(value);
-    player.removeCredit(value);
+    gameService->removeCreditFromPlayerAndPlayingPlayer(player, value);
     player.setRaise(true);
     player.setTurn(false);
 

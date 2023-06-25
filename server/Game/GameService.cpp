@@ -62,10 +62,15 @@ void GameService::sendInfoToAllPlayingPlayers() {
     );
 }
 
-void GameService::removeCreditFromPlayers(std::deque<Player> &players) {
-    for (auto &player: players) {
-        player.removeCredit(2);
+void GameService::removeCreditFromPlayers(std::deque<Player> &playingPlayers) {
+    for (auto &player: playingPlayers) {
+        removeCreditFromPlayerAndPlayingPlayer(player, 2);
     }
+}
+
+void GameService::removeCreditFromPlayerAndPlayingPlayer(Player &player, int value) {
+    player.removeCredit(value);
+    game.getPlayer(player.getName()).removeCredit(value);
 }
 
 void GameService::gameResetBetweenRounds() {
@@ -75,7 +80,7 @@ void GameService::gameResetBetweenRounds() {
     game.resetWinners();
     DeckMaster::collectCardsFromPlayingPlayers(game.getPlayingPlayersRef(), game.getCardsRef());
     DeckMaster::dealTheCards(game.getPlayingPlayersRef(), game.getCardsRef());
-    game.addToBank(game.getNumOfPlayingPlayers());
+    game.addToBank(game.getNumOfPlayingPlayers() * 2);
     removeCreditFromPlayers(game.getPlayingPlayersRef());
     game.setLast(nullptr);
     game.setCurrent(game.firstPlayingPlayer());
@@ -83,9 +88,10 @@ void GameService::gameResetBetweenRounds() {
     deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
 }
 
-void GameService::adjustWinnersBalance(std::vector<Player *> &players, int value) {
-    for (auto &player: players) {
+void GameService::adjustWinnersBalance(std::vector<Player *> &winnersInPlayingPlayers, int value) {
+    for (auto &player: winnersInPlayingPlayers) {
         player->addCredit(value);
+        game.getPlayer(player->getName()).addCredit(value);
     }
 }
 
@@ -128,7 +134,7 @@ void GameService::resetGame(const std::string &playerName) {
 }
 
 bool GameService::playerIsNotKicked(const std::string &playerName) {
-    std::deque<Player> players = game.getPlayingPlayers();
+    std::vector<Player> players = game.getPlayersCopy();
     Player player = std::find_if(
             players.begin(), players.end(),
             [&playerName](const Player &player) {
@@ -194,7 +200,10 @@ void GameService::updateQueue() {
     Player playerCopy = Player(game.currentPlayer());
 
     game.removeFirstFromPlayingPlayers();
+
     if (playerCopy.getCredit() >= 0) { game.addToPlayingPlayers(playerCopy); }
+    else { game.setPlayerKicked(playerCopy.getName()); }
+
     game.setLastPlayer(game.getPlayingPlayersRef().back());
 
     std::deque<Player> &playingPlayers = game.getPlayingPlayersRef();
@@ -202,6 +211,7 @@ void GameService::updateQueue() {
         playingPlayers.push_back(playingPlayers.front());
         playingPlayers.pop_front();
     }
+
     game.setCurrent(playingPlayers.front());
     game.currentPlayer().setTurn(true);
     playingPlayers.size() == 1 ? game.setNext(playingPlayers.front()) : game.setNext(playingPlayers[1]);

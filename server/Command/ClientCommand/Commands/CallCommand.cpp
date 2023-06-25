@@ -20,7 +20,7 @@ MoveInfo CallCommand::exactExecute() {
     if (player.getCredit() <= bid || bid == 0 || player.isExchange()) { return MoveInfo::NOT_ALLOWED; }
 
     player.setTurn(false);
-    player.removeCredit(player.getDiff());
+    gameService->removeCreditFromPlayerAndPlayingPlayer(player, player.getDiff());
     game->addToBank(player.getDiff());
     player.setDiff(0);
 

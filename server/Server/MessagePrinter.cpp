@@ -143,7 +143,7 @@ std::string MessagePrinter::printBetTooHighMessage() {
 }
 
 std::string MessagePrinter::printRaiseTooLowMessage(int minimumRaise) {
-    std::string message = "Raise is too low! Minimum raise is " + std::to_string(minimumRaise);
+    std::string message = "Raise is too low! Minimum raise is " + std::to_string(minimumRaise) + "! ";
     std::cout << message << std::endl;
     return message;
 }

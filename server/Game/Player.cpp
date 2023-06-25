@@ -125,10 +125,6 @@ void Player::setDiff(int toSet) {
     diff = toSet;
 }
 
-void Player::setCredit(int toSet) {
-    credit = toSet;
-}
-
 int Player::getDiff() const {
     return diff;
 }
@@ -156,5 +152,9 @@ Player::Player(const Player& other) {
     for (const Card& card : other.playerCards) {
         playerCards.emplace_back(card);
     }
+}
+
+void Player::setKicked(bool toSet) {
+    kicked = toSet;
 }
 

@@ -235,3 +235,14 @@ int Game::getBid() const {
 void Game::setAllIn(bool toSet) {
     allIn = toSet;
 }
+
+Player &Game::getPlayer(const std::string &playerName) {
+    return *std::find_if(
+            players.begin(), players.end(),
+            [&playerName](const Player &player) { return player.getName() == playerName; }
+    );
+}
+
+void Game::setPlayerKicked(const std::string& playerName) {
+    getPlayer(playerName).setKicked(true);
+}
