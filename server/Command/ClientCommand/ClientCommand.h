@@ -22,7 +22,7 @@ protected:
             const ParsedMessage &pParsedMessage,
             GameServiceCommandController *gameService);
 
-    virtual bool exactExecute() {return false;};
+    virtual MoveInfo exactExecute() {return MoveInfo();};
     void execute() override;
     void sendGameNotStartedMessage();
     void sendNotYourTurnMessage();

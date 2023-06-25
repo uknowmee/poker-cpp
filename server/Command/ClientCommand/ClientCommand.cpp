@@ -17,9 +17,12 @@ ClientCommand::ClientCommand(
 void ClientCommand::execute() {
     if (!gameService->isGameStarted()) { return sendGameNotStartedMessage(); }
     if (!gameService->isPlayerTurn(parsedMessage.senderName)) { return sendNotYourTurnMessage(); }
-    if (exactExecute()) { return sendToAllPlayersWhatHappened(); }
 
-    sendPlayerThatMoveNotAllowed();
+    MoveInfo moveInfo = exactExecute();
+    if (moveInfo == MoveInfo::ACCEPTED) { return sendToAllPlayersWhatHappened(); }
+    if (moveInfo == MoveInfo::NOT_ALLOWED) { return sendPlayerThatMoveNotAllowed(); }
+    if (moveInfo == MoveInfo::ROUND_FINISHED) { return gameService->finishRound(); }
+    if (moveInfo == MoveInfo::GAME_FINISHED) { return gameService->finishGame(); }
 }
 
 void ClientCommand::sendGameNotStartedMessage() {

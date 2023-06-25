@@ -159,11 +159,11 @@ std::string GameService::lastPlayerName() {
     return game.lastPlayer().getName();
 }
 
-bool GameService::invokeFold(const std::string &senderName) {
+MoveInfo GameService::invokeFold(const std::string &senderName) {
     deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
     Player &player = game.currentPlayer();
 
-    if (player.getCredit() <= 0 || player.isExchange()) { return false; }
+    if (player.getCredit() <= 0 || player.isExchange()) { return MoveInfo::NOT_ALLOWED; }
 
     player.setFold(true);
     player.setTurn(false);
@@ -172,11 +172,11 @@ bool GameService::invokeFold(const std::string &senderName) {
     return moveAccepted();
 }
 
-bool GameService::invokeCheck(const std::string &senderName) {
+MoveInfo GameService::invokeCheck(const std::string &senderName) {
     deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
     int bid = game.getBid();
     Player &player = game.currentPlayer();
-    if (bid != 0 || player.getCredit() <= 0 || player.isExchange()) { return false; }
+    if (bid != 0 || player.getCredit() <= 0 || player.isExchange()) { return MoveInfo::NOT_ALLOWED; }
 
     player.setCheck(true);
     player.setTurn(false);
@@ -184,11 +184,11 @@ bool GameService::invokeCheck(const std::string &senderName) {
     return moveAccepted();
 }
 
-bool GameService::invokeCall(const std::string &senderName) {
+MoveInfo GameService::invokeCall(const std::string &senderName) {
     deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
     Player &player = game.currentPlayer();
     int bid = game.getBid();
-    if (player.getCredit() <= bid || bid == 0 || player.isExchange()) { return false; }
+    if (player.getCredit() <= bid || bid == 0 || player.isExchange()) { return MoveInfo::NOT_ALLOWED; }
 
     player.setTurn(false);
     player.removeCredit(player.getDiff());
@@ -198,11 +198,11 @@ bool GameService::invokeCall(const std::string &senderName) {
     return moveAccepted();
 }
 
-bool GameService::invokeAll(const std::string &senderName) {
+MoveInfo GameService::invokeAll(const std::string &senderName) {
     deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
     Player &player = game.currentPlayer();
     int bid = game.getBid();
-    if (player.getCredit() > bid || bid == 0 || player.isExchange()) { return false; }
+    if (player.getCredit() > bid || bid == 0 || player.isExchange()) { return MoveInfo::NOT_ALLOWED; }
 
     player.setTurn(false);
     game.addToBank(player.getCredit());
@@ -213,30 +213,30 @@ bool GameService::invokeAll(const std::string &senderName) {
     return moveAccepted();
 }
 
-bool GameService::invokeCya(const std::string &senderName) {
+MoveInfo GameService::invokeCya(const std::string &senderName) {
     deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
     Player &player = game.currentPlayer();
-    if (player.getCredit() >= 0 || player.isExchange()) { return false; }
+    if (player.getCredit() >= 0 || player.isExchange()) { return MoveInfo::NOT_ALLOWED; }
 
     DeckMaster::collectCardsFromPlayer(player, game.getCardsRef());
 
     return moveAccepted();
 }
 
-bool GameService::invokeBet(const std::string &senderName, int value) {
+MoveInfo GameService::invokeBet(const std::string &senderName, int value) {
     deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
     Player &player = game.currentPlayer();
     int bid = game.getBid();
     int credit = player.getCredit();
-    if (bid != 0 || credit <= 2 || game.isAllIn() || player.isExchange()) { return false; }
+    if (bid != 0 || credit <= 2 || game.isAllIn() || player.isExchange()) { return MoveInfo::NOT_ALLOWED; }
 
     if (value <= 2) {
         serverGameController->sendToClient(MessagePrinter::printBetTooLowMessage(3), senderName);
-        return false;
+        return MoveInfo::NOT_ALLOWED;
     }
     if (value > credit) {
         serverGameController->sendToClient(MessagePrinter::printBetTooHighMessage(), senderName);
-        return false;
+        return MoveInfo::NOT_ALLOWED;
     }
 
     game.setBid(value);
@@ -257,21 +257,21 @@ bool GameService::invokeBet(const std::string &senderName, int value) {
     return moveAccepted();
 }
 
-bool GameService::invokeRaise(const std::string &senderName, int value) {
+MoveInfo GameService::invokeRaise(const std::string &senderName, int value) {
     deckMaster.evaluatePlayingPlayersCards(game.getPlayingPlayersRef());
     Player &player = game.currentPlayer();
     int bid = game.getBid();
     int credit = player.getCredit();
 
-    if (bid == 0 || credit <= 2 * bid || game.isAllIn() || player.isExchange()) { return false; }
+    if (bid == 0 || credit <= 2 * bid || game.isAllIn() || player.isExchange()) { return MoveInfo::NOT_ALLOWED; }
 
     if (value <= 2 * bid) {
         serverGameController->sendToClient(MessagePrinter::printRaiseTooLowMessage(2 * bid), senderName);
-        return false;
+        return MoveInfo::NOT_ALLOWED;
     }
     if (value > credit) {
         serverGameController->sendToClient(MessagePrinter::printRaiseTooHighMessage(), senderName);
-        return false;
+        return MoveInfo::NOT_ALLOWED;
     }
 
     game.addToBank(value);
@@ -314,12 +314,16 @@ void GameService::invokeExchange(const std::string &senderName, const std::vecto
     }
 }
 
-bool GameService::moveAccepted() {
+MoveInfo GameService::moveAccepted() {
     updateQueue();
     updateIfFirstPlayerReadyForExchange();
-    updateIfSecondPartFinished();
 
-    return true;
+    if (updateIfSecondPartFinished()) {
+        makeWinners();
+        return eitherGameOrRoundFinished();
+    }
+
+    return MoveInfo::ACCEPTED;
 }
 
 void GameService::makeWinners() {
@@ -382,12 +386,12 @@ void GameService::updateIfFirstPlayerReadyForExchange() {
     serverGameController->broadcastMessage(MessagePrinter::printExchangeStartedMessage());
 }
 
-void GameService::updateIfSecondPartFinished() {
+bool GameService::updateIfSecondPartFinished() {
     Player &player = game.currentPlayer();
 
     if (!(player.getBet() || player.getRaise() || player.getCheck() || game.isAllIn())
         || game.getPart() % 2 != 0) {
-        return;
+        return false;
     }
 
     std::deque<Player> &playingPlayers = game.getPlayingPlayersRef();
@@ -400,11 +404,11 @@ void GameService::updateIfSecondPartFinished() {
                 player.setRaise(false);
             }
     );
-    makeWinners();
-    finishGameOrRound();
+
+    return true;
 }
 
-void GameService::finishGameOrRound() {
+MoveInfo GameService::eitherGameOrRoundFinished() {
     // todo implement
     int a = 2;
 }

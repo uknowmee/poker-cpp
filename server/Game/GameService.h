@@ -31,12 +31,12 @@ private:
     static void adjustWinnersBalance(std::vector<Player *> &players, int value);
     void removePlayerIfNotStarted(const std::string &playerName);
     void resetGame(const std::string& playerName);
-    bool moveAccepted();
+    MoveInfo moveAccepted();
     void updateQueue();
     void updateIfFirstPlayerReadyForExchange();
-    void updateIfSecondPartFinished();
+    bool updateIfSecondPartFinished();
     void makeWinners();
-    void finishGameOrRound();
+    MoveInfo eitherGameOrRoundFinished();
     bool playerIsNotKicked(const std::string &playerName);
 
     //GameServiceCommandController
@@ -46,13 +46,13 @@ private:
     std::string currentPlayerName() override;
     std::string lastPlayerName() override;
 
-    bool invokeFold(const std::string &senderName) override;
-    bool invokeCheck(const std::string &senderName) override;
-    bool invokeCall(const std::string &senderName) override;
-    bool invokeAll(const std::string &senderName) override;
-    bool invokeCya(const std::string &senderName) override;
-    bool invokeBet(const std::string &senderName, int value) override;
-    bool invokeRaise(const std::string &senderName, int value) override;
+    MoveInfo invokeFold(const std::string &senderName) override;
+    MoveInfo invokeCheck(const std::string &senderName) override;
+    MoveInfo invokeCall(const std::string &senderName) override;
+    MoveInfo invokeAll(const std::string &senderName) override;
+    MoveInfo invokeCya(const std::string &senderName) override;
+    MoveInfo invokeBet(const std::string &senderName, int value) override;
+    MoveInfo invokeRaise(const std::string &senderName, int value) override;
     void invokeExchange(const std::string &senderName, const std::vector<int> &values) override;
 
 public:
