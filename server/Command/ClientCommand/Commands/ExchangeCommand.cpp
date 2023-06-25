@@ -9,10 +9,11 @@ ExchangeCommand::ExchangeCommand(
         const ParsedMessage &parsedMessage,
         GameServiceCommandController *gameService
 ) : ClientCommand(server, parsedMessage, gameService) {
-
 }
 
-bool ExchangeCommand::exactExecute() {
+void ExchangeCommand::execute() {
+    if (!gameService->isGameStarted()) { return sendGameNotStartedMessage(); }
+    if (!gameService->isPlayerTurn(parsedMessage.senderName)) { return sendNotYourTurnMessage(); }
     gameService->invokeExchange(parsedMessage.senderName, parsedMessage.values);
-    return true;
+    return sendToAllPlayersWhatHappened();
 }

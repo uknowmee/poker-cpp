@@ -23,6 +23,7 @@ public:
     Suit getSuit() const;
     std::string toString() const;
     int getNumber() const;
+    Card(const Card &other);
     Card(Rank rankToSet, Suit suitToSet, int num);
 };
 

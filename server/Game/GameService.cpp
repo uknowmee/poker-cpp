@@ -296,16 +296,14 @@ bool GameService::invokeRaise(const std::string &senderName, int value) {
 }
 
 void GameService::invokeExchange(const std::string &senderName, const std::vector<int> &values) {
-    Player &player = game.currentPlayer();
-    if (!player.isExchange()) { return; }
+    if (!game.currentPlayer().isExchange()) { return; }
 
-    DeckMaster::collectPlayerCards(game.currentPlayer(), game.getCardsRef(), values);
-    player.setExchange(false);
+    game.currentPlayer().setExchange(false);
     updateQueue();
+    DeckMaster::collectPlayerCards(game.lastPlayer(), game.getCardsRef(), values);
     serverGameController->sendToClient(MessagePrinter::printExchangeAccepted(), senderName);
 
-    player = game.currentPlayer();
-    if (!player.isExchange()) {
+    if (!game.currentPlayer().isExchange()) {
         DeckMaster::dealTheCards(game.getPlayingPlayersRef(), game.getCardsRef());
         game.adjustPart();
         game.setBid(0);
@@ -349,10 +347,11 @@ void GameService::makeWinners() {
 }
 
 void GameService::updateQueue() {
-    Player &player = game.currentPlayer();
+    Player playerCopy = Player(game.currentPlayer());
+
     game.removeFirstFromPlayingPlayers();
-    game.setLastPlayer(player);
-    if (player.getCredit() >= 0) { game.addToPlayingPlayers(player); }
+    if (playerCopy.getCredit() >= 0) { game.addToPlayingPlayers(playerCopy); }
+    game.setLastPlayer(game.getPlayingPlayersRef().back());
 
     std::deque<Player> &playingPlayers = game.getPlayingPlayersRef();
     while (playingPlayers.front().isFold()) {

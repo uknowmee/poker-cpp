@@ -32,6 +32,7 @@ private:
 
 public:
     static Player createPlayer(std::string playerName);
+    Player(const Player &other);
     void removeCredit(int toRemove);
     void addCredit(int toAdd);
     void addToDiff(int toAdd);

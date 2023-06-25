@@ -24,15 +24,14 @@ protected:
 
     virtual bool exactExecute() {return false;};
     void execute() override;
+    void sendGameNotStartedMessage();
+    void sendNotYourTurnMessage();
+    void sendToAllPlayersWhatHappened();
     std::string gameNotStartedMessage();
 
 private:
-    void sendGameNotStartedMessage();
-    void sendNotYourTurnMessage();
+
     std::string notYourTurnMessage();
-
-    void sendToAllPlayersWhatHappened();
-
     void sendPlayerThatMoveNotAllowed();
 };
 

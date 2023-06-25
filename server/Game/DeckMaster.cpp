@@ -19,8 +19,9 @@ DeckMaster::DeckMaster() = default;
 void DeckMaster::dealTheCards(std::deque<Player> &players, std::vector<Card> &cards) {
     shuffleBeforeDealing(cards);
 
-    for (int i = 0; i < 5; i++) {
-        for (auto &player: players) {
+    for(auto &player: players) {
+        int cardsToDeal = 5 - (int)player.cards().size();
+        for (int i = 0; i < cardsToDeal; i++) {
             player.addCard(cards.back());
             cards.pop_back();
         }

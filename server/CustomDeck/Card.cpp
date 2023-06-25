@@ -24,3 +24,9 @@ Card::Card(Rank rankToSet, Suit suitToSet, int num)
 int Card::getNumber() const {
     return num;
 }
+
+Card::Card(const Card &other) {
+    rank = other.rank;
+    suit = other.suit;
+    num = other.num;
+}

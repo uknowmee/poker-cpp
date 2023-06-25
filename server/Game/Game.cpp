@@ -64,11 +64,11 @@ void Game::setPlayingPlayers(std::vector<Player> toSet) {
 }
 
 Player &Game::firstPlayingPlayer() {
-    return playingPlayers[0];
+    return playingPlayers.at(0);
 }
 
 Player &Game::secondPlayingPlayer() {
-    return playingPlayers[1];
+    return playingPlayers.at(1);
 }
 
 void Game::setCurrent(Player &player) {

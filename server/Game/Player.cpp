@@ -136,3 +136,25 @@ int Player::getDiff() const {
 void Player::setFold(bool toSet) {
     fold = toSet;
 }
+
+Player::Player(const Player& other) {
+    playerName = other.playerName;
+    fold = other.fold;
+    check = other.check;
+    bet = other.bet;
+    raise = other.raise;
+    exchange = other.exchange;
+    turn = other.turn;
+    kicked = other.kicked;
+    credit = other.credit;
+    diff = other.diff;
+    points = other.points;
+    type = other.type;
+
+    // Create a deep copy of the playerCards vector
+    playerCards.reserve(other.playerCards.size());
+    for (const Card& card : other.playerCards) {
+        playerCards.emplace_back(card);
+    }
+}
+
