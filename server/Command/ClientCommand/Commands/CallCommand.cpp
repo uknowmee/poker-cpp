@@ -17,7 +17,7 @@ MoveInfo CallCommand::exactExecute() {
     deckMaster->evaluatePlayingPlayersCards(game->getPlayingPlayersRef());
     Player &player = game->currentPlayer();
     int bid = game->getBid();
-    if (player.getCredit() <= bid || bid == 0 || player.isExchange()) { return MoveInfo::NOT_ALLOWED; }
+    if (player.getCredit() <= player.getDiff() || bid == 0 || player.isExchange()) { return MoveInfo::NOT_ALLOWED; }
 
     player.setTurn(false);
     gameService->removeCreditFromPlayerAndPlayingPlayer(player, player.getDiff());

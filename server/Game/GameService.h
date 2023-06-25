@@ -34,12 +34,14 @@ private:
     void makeWinners();
     MoveInfo eitherGameOrRoundFinished();
     bool playerIsNotKicked(const std::string &playerName);
+    static void removeDiffFromPlayers(std::deque<Player> &playingPlayers);
 
     //GameServiceCommandController
     void removeCreditFromPlayerAndPlayingPlayer(Player &player, int value) override;
     void sendInfoToAllPlayingPlayers() override;
     void updateQueue() override;
     MoveInfo moveAccepted() override;
+    MoveInfo exchangeMoveAcceptedInAllInCase() override;
     void finishRound() override;
     void finishGame() override;
     bool isPlayerTurn(const std::string &senderName) override;

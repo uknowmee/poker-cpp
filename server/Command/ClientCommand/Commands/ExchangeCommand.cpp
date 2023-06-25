@@ -40,5 +40,16 @@ void ExchangeCommand::proceedExchange() {
 
         server->broadcastMessage(MessagePrinter::printExchangeFinishedMessage());
         gameService->sendInfoToAllPlayingPlayers();
+
+        checkAllInCase();
     }
+}
+
+void ExchangeCommand::checkAllInCase() {
+    if (!game->isAllIn()) { return; }
+
+    // bypassing allIn in standard poker game logic.
+    MoveInfo moveInfo = gameService->exchangeMoveAcceptedInAllInCase();
+    if (moveInfo == MoveInfo::ROUND_FINISHED) { return gameService->finishRound(); }
+    else if (moveInfo == MoveInfo::GAME_FINISHED) { return gameService->finishGame(); }
 }

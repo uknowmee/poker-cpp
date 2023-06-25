@@ -23,13 +23,21 @@ std::string Player::toString() const {
     std::string result = "Player: " + playerName + "\n";
     result += (turn ? "Turn: true\n" : "Turn: false\n");
     result += "Credit: " + std::to_string(credit) + "\n";
+    result += "Diff: " + std::to_string(diff) + "\n";
     result += "Points: " + std::to_string(points) + " - " + CardMapper::pointsMap[points] + "\n";
     result += "Type: " + CardMapper::rankMap[type] + "\n";
     result += "Cards: ";
     for (int i = 0; i < playerCards.size(); ++i) {
         result += playerCards[i].toString();
         if (i != playerCards.size() - 1) { result += ", "; }
+        else { result += "\n"; }
     }
+    result += (fold ? "Fold: true, " : "Fold: false, ");
+    result += (check ? "Check: true, " : "Check: false, ");
+    result += (bet ? "Bet: true, " : "Bet: false, ");
+    result += (raise ? "Raise: true, " : "Raise: false, ");
+    result += (exchange ? "Exchange: true, " : "Exchange: false, ");
+    result += (kicked ? "Kicked: true, " : "Kicked: false, ");
     return result;
 }
 
@@ -133,7 +141,7 @@ void Player::setFold(bool toSet) {
     fold = toSet;
 }
 
-Player::Player(const Player& other) {
+Player::Player(const Player &other) {
     playerName = other.playerName;
     fold = other.fold;
     check = other.check;
@@ -149,7 +157,7 @@ Player::Player(const Player& other) {
 
     // Create a deep copy of the playerCards vector
     playerCards.reserve(other.playerCards.size());
-    for (const Card& card : other.playerCards) {
+    for (const Card &card: other.playerCards) {
         playerCards.emplace_back(card);
     }
 }
@@ -157,4 +165,3 @@ Player::Player(const Player& other) {
 void Player::setKicked(bool toSet) {
     kicked = toSet;
 }
-

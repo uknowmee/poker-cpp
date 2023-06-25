@@ -20,6 +20,8 @@ void DeckMaster::dealTheCards(std::deque<Player> &players, std::vector<Card> &ca
     shuffleBeforeDealing(cards);
 
     for(auto &player: players) {
+        if (player.isFold()) { continue; }
+
         int cardsToDeal = 5 - (int)player.cards().size();
         for (int i = 0; i < cardsToDeal; i++) {
             player.addCard(cards.back());
@@ -78,7 +80,7 @@ void DeckMaster::collectPlayerCards(Player &player, std::vector<Card> &cards, st
 
 void DeckMaster::evaluatePlayingPlayersCards(std::deque<Player> &players) {
     for (Player &player: players) {
-
+        if (player.cards().empty()) { continue; }
         Evaluator::Evaluation evaluation = evaluator.eval(player.cards());
         player.setPoints(evaluation.points);
         player.setType(evaluation.type);
@@ -96,4 +98,3 @@ std::vector<Card> DeckMaster::createFabricDeck() {
     }
     return fabric;
 }
-

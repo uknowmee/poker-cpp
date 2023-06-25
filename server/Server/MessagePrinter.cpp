@@ -43,6 +43,24 @@ std::string MessagePrinter::printGameEndedDueToDisconnectionMessage(const std::s
     return message;
 }
 
+std::string MessagePrinter::printExchangeStartedMessage() {
+    std::string message = "Exchange started!";
+    std::cout << message << std::endl;
+    return message;
+}
+
+std::string MessagePrinter::printGameEndMessage(const std::string& winnerName) {
+    std::string message = "Game has ended! Winner is: " + winnerName;
+    std::cout << message << std::endl;
+    return message;
+}
+
+std::string MessagePrinter::printRoundEndMessage(const std::string& winnersNames, int bankValue) {
+    std::string message = "Round has ended! Winners are: " + winnersNames + " with bank value: " + std::to_string(bankValue);
+    std::cout << message << std::endl;
+    return message;
+}
+
 std::string MessagePrinter::gameStartMessage() {
     return "The game has started!";
 }
@@ -174,8 +192,3 @@ std::string MessagePrinter::moveNotAllowedMessage(const std::string& message) {
     return "Move not allowed: " + message;
 }
 
-std::string MessagePrinter::printExchangeStartedMessage() {
-    std::string message = "Exchange started!";
-    std::cout << message << std::endl;
-    return message;
-}
