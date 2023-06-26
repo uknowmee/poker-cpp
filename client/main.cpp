@@ -1,8 +1,8 @@
 #include "Client.h"
 
 int main() {
-    const char *hostname = "127.0.0.1";
-    int port = 8987;
+    const char *hostname = "129.152.23.234";
+    int port = 7123;
 
     Client client = Client::createClient(hostname, port);
     client.start();
